@@ -9,6 +9,7 @@ import './App.css';
 const Home = lazy(() => import('./pages/Home'));
 const Housing = lazy(() => import('./pages/Housing'));
 const MapPage = lazy(() => import('./pages/MapPage'));
+const HouseDetails = lazy(() => import('./pages/HouseDetails'));
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -19,6 +20,7 @@ const AnimatedRoutes = () => {
         <Route path="/" element={<PixelTransition><Home /></PixelTransition>} />
         <Route path="/housing" element={<PixelTransition><Housing /></PixelTransition>} />
         <Route path="/map" element={<PixelTransition><MapPage /></PixelTransition>} />
+        <Route path="/details" element={<PixelTransition><HouseDetails /></PixelTransition>} />
       </Routes>
     </AnimatePresence>
   );
