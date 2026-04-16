@@ -5,6 +5,7 @@ import Footer from './components/Footer';
 import './App.css';
 
 const Home = lazy(() => import('./pages/Home'));
+const Housing = lazy(() => import('./pages/Housing'));
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Suspense fallback={<div>Loading...</div>}>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/housing" element={<Housing />} />
             {/* Add more routes below */}
           </Routes>
         </Suspense>

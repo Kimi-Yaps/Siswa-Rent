@@ -2,7 +2,8 @@
   width: 100%;
   position: relative;
   z-index: 100;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05); /* very light border if any */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  /* very light border if any */
 }
 
 .top-banner {
@@ -22,7 +23,8 @@
 }
 
 .scrolling-text span {
-  font-family: 'Recia', serif; /* Look at the image, seems slightly serif or refined sans */
+  font-family: 'Recia', serif;
+  /* Look at the image, seems slightly serif or refined sans */
   font-size: 14px;
   display: flex;
   align-items: center;
@@ -36,8 +38,13 @@
 }
 
 @keyframes scroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 .nav-main {
@@ -53,7 +60,8 @@
   gap: 30px;
 }
 
-.nav-links a, .nav-actions .sign-in {
+.nav-links a,
+.nav-actions .sign-in {
   text-decoration: none;
   font-family: 'Recia', serif;
   color: #1a1a1a;
@@ -61,7 +69,8 @@
   transition: opacity 0.2s ease;
 }
 
-.nav-links a:hover, .nav-actions .sign-in:hover {
+.nav-links a:hover,
+.nav-actions .sign-in:hover {
   opacity: 0.6;
 }
 
@@ -77,16 +86,6 @@
   display: flex;
   align-items: center;
   gap: 20px;
-}
-
-.search-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .search-icon {

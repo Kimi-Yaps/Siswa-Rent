@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -18,19 +19,13 @@ const Navbar = () => {
       </div>
       <nav className="nav-main">
         <div className="nav-links">
-          <a href="#housing">Housing</a>
+          <Link to="/housing">Housing</Link>
           <a href="#map">Map</a>
         </div>
         <div className="nav-logo">
-          QuerySaja
+          <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>QuerySaja</Link>
         </div>
         <div className="nav-actions">
-          <button className="search-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="search-icon">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-          </button>
           <a href="#signin" className="sign-in">Sign In</a>
         </div>
       </nav>
