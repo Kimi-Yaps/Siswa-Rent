@@ -1,3 +1,17 @@
+@font-face {
+  font-family: 'Array';
+  src: url('/Fonts/Array/Fonts/OTF/Array-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Recia';
+  src: url('/Fonts/Recia/Fonts/OTF/Recia-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 * {
   box-sizing: border-box;
 }
