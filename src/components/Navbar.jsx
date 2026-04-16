@@ -20,7 +20,7 @@ const Navbar = () => {
       <nav className="nav-main">
         <div className="nav-links">
           <Link to="/housing">Housing</Link>
-          <a href="#map">Map</a>
+          <Link to="/map">Map</Link>
         </div>
         <div className="nav-logo">
           <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>QuerySaja</Link>

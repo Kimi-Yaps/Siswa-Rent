@@ -3,75 +3,13 @@
   flex: 1;
 }
 
-.search-header {
-  width: 100%;
-  padding: 60px 20px;
-  background: linear-gradient(135deg, #7b9ab8 0%, #567b9a 100%);
-  display: flex;
-  justify-content: center;
-}
-
-.search-banner {
-  max-width: 900px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  align-items: center;
-}
-
-.search-bar {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  background-color: #f0ede0;
-  border-radius: 12px;
-  padding: 18px 24px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-
-.search-icon-l {
-  width: 24px;
-  height: 24px;
-  color: #888;
-  margin-right: 15px;
-}
-
-.search-bar input {
-  flex: 1;
-  border: none;
-  background: transparent;
-  font-family: 'Recia', serif;
-  font-size: 24px;
-  color: #1a1a1a;
-  outline: none;
-}
-
-.search-bar input::placeholder {
-  color: #999;
-}
-
-.filters-row {
-  display: flex;
-  gap: 15px;
+.housing-hero-banner {
+  background-image: url('/BackgroundImage.webp');
+  background-size: cover;
+  background-position: center;
   width: 100%;
 }
 
-.filter-item {
-  flex: 1;
-  background-color: #f0ede0;
-  padding: 16px 20px;
-  border-radius: 12px;
-  font-family: 'Recia', serif;
-  font-size: 14px;
-  color: #888;
-  cursor: pointer;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-
-.filter-item:hover {
-  background-color: #fff;
-}
 
 .houses-grid-section {
   max-width: 1300px;

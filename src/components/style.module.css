@@ -1,0 +1,26 @@
+.pixelBackground {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column; /* 10 rows stacked */
+    z-index: 9999;
+    pointer-events: none; /* CRUCIAL: allows users to click through the invisible blocks to navigate the page */
+}
+
+.row {
+    display: flex;
+    width: 100%;
+    /* Each row takes 10vh because there are 10 rows for 100vh */
+    height: 10vh; 
+}
+
+.block {
+    /* --- TWEAK THIS TO CHANGE THE COLOR OF THE PIXEL TRANSITION FLAPS --- */
+    background-color: #748F44;
+    
+    height: 100%;
+    aspect-ratio: 1; /* Keeps the flaps perfectly square relative to the height */
+}
