@@ -5,8 +5,6 @@ const HouseDetails = () => {
   return (
     <main className="house-details-page">
       <div className="house-details-content">
-        <h1 className="house-title">Pulau Hujung Bilik 2</h1>
-        
         <div className="house-top-section">
           <div className="house-images-col">
             <div className="main-image-container">
@@ -21,6 +19,7 @@ const HouseDetails = () => {
           </div>
           
           <div className="house-info-col">
+            <h1 className="house-title">Pulau Hujung Bilik 2</h1>
             <div className="info-item">
               <span className="info-label">Price:</span>
             </div>

@@ -20,7 +20,12 @@ const Housing = () => {
       <section className="houses-grid-section">
         <div className="houses-grid">
           {dummyData.map((item) => (
-            <div key={item.id} className="house-card">
+            <div 
+              key={item.id} 
+              className="house-card" 
+              onClick={() => window.location.href = '/details'} 
+              style={{ cursor: 'pointer' }}
+            >
               <img src={item.image} alt={item.name} className="house-image" />
               <div className="house-details">
                 <h4>{item.name}</h4>
