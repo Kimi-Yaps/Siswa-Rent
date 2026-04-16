@@ -13,7 +13,7 @@ const SearchBar = () => {
           <input type="text" placeholder="Enter a destination or property" />
         </div>
         <div className="filters-row">
-          <div className="filter-item">Compare distance</div>
+          <div className="filter-item">Compare distance To</div>
           <div className="filter-item">Max Budget</div>
           <div className="filter-item">Min Budget</div>
         </div>
