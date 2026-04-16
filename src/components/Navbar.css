@@ -1,0 +1,96 @@
+.navbar-container {
+  width: 100%;
+  position: relative;
+  z-index: 100;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05); /* very light border if any */
+}
+
+.top-banner {
+  background-color: transparent;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+}
+
+.scrolling-text {
+  display: inline-block;
+  animation: scroll 20s linear infinite;
+  display: flex;
+  gap: 40px;
+}
+
+.scrolling-text span {
+  font-family: 'Recia', serif; /* Look at the image, seems slightly serif or refined sans */
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #1a1a1a;
+}
+
+.circle-icon {
+  width: 14px;
+  height: 14px;
+}
+
+@keyframes scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.nav-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px;
+  background-color: transparent;
+}
+
+.nav-links {
+  display: flex;
+  gap: 30px;
+}
+
+.nav-links a, .nav-actions .sign-in {
+  text-decoration: none;
+  font-family: 'Recia', serif;
+  color: #1a1a1a;
+  font-size: 16px;
+  transition: opacity 0.2s ease;
+}
+
+.nav-links a:hover, .nav-actions .sign-in:hover {
+  opacity: 0.6;
+}
+
+.nav-logo {
+  font-family: 'Recia', serif;
+  font-size: 28px;
+  font-weight: 500;
+  color: #1a1a1a;
+  letter-spacing: 0.5px;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.search-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-icon {
+  width: 20px;
+  height: 20px;
+  color: #1a1a1a;
+}

@@ -1,0 +1,22 @@
+/**
+* @license
+*
+* Font Family: Erode
+* Designed by: Nikhil Ranganathan
+* URL: https://www.fontshare.com/fonts/erode
+* © 2026 Indian Type Foundry
+*
+* Erode Semibold 
+
+*
+*/
+@font-face {
+  font-family: 'Erode-Semibold';
+  src: url('../fonts/Erode-Semibold.woff2') format('woff2'),
+       url('../fonts/Erode-Semibold.woff') format('woff'),
+       url('../fonts/Erode-Semibold.ttf') format('truetype');
+  font-weight: 600;
+  font-display: swap;
+  font-style: normal;
+}
+

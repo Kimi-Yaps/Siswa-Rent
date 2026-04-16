@@ -1,0 +1,22 @@
+/**
+* @license
+*
+* Font Family: Khand
+* Designed by: Satya Rajpurohit
+* URL: https://www.fontshare.com/fonts/khand
+* © 2026 Indian Type Foundry
+*
+* Khand Regular 
+
+*
+*/
+@font-face {
+  font-family: 'Khand-Regular';
+  src: url('../fonts/Khand-Regular.woff2') format('woff2'),
+       url('../fonts/Khand-Regular.woff') format('woff'),
+       url('../fonts/Khand-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+  font-style: normal;
+}
+
