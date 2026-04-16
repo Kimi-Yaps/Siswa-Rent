@@ -52,6 +52,23 @@
   width: 100%;
 }
 
+.filter-input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background-color: transparent;
+  outline: none;
+  color: #1a1a1a;
+  font-family: inherit;
+  font-size: inherit;
+  padding: 16px 20px;
+  cursor: text;
+}
+
+.filter-input::placeholder {
+  color: #888;
+}
+
 .filter-item {
   flex: 1;
   background-color: #f0ede0;

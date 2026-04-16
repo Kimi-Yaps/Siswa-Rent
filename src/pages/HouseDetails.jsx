@@ -1,20 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './HouseDetails.css';
 
 const HouseDetails = () => {
+  const images = [
+    "/Pulau_Tengah_11.webp",
+    "/Pulau_Tengah_11.webp",
+    "/Pulau_Tengah_11.webp",
+    "/Pulau_Tengah_11.webp"
+  ];
+  
+  const [activeIndex, setActiveIndex] = useState(0);
+
   return (
     <main className="house-details-page">
       <div className="house-details-content">
         <div className="house-top-section">
           <div className="house-images-col">
             <div className="main-image-container">
-              <img src="/Pulau_Tengah_11.webp" alt="Pulau Hujung Bilik 2" className="main-image" />
+              <img src={images[activeIndex]} alt="Pulau Hujung Bilik 2" className="main-image" />
             </div>
             <div className="thumbnails-container">
-              <img src="/Pulau_Tengah_11.webp" alt="Thumbnail 1" className="thumbnail" />
-              <img src="/Pulau_Tengah_11.webp" alt="Thumbnail 2" className="thumbnail" />
-              <img src="/Pulau_Tengah_11.webp" alt="Thumbnail 3" className="thumbnail" />
-              <img src="/Pulau_Tengah_11.webp" alt="Thumbnail 4" className="thumbnail" />
+              {images.map((img, idx) => (
+                <img 
+                  key={idx} 
+                  src={img} 
+                  alt={`Thumbnail ${idx + 1}`} 
+                  className={`thumbnail ${activeIndex === idx ? 'active' : ''}`} 
+                  onClick={() => setActiveIndex(idx)}
+                />
+              ))}
             </div>
           </div>
           

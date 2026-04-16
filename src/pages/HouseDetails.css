@@ -60,6 +60,17 @@
   aspect-ratio: 1 / 1;
   object-fit: cover;
   cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease, opacity 0.2s ease;
+  border-radius: 4px;
+}
+
+.thumbnail:hover {
+  opacity: 0.8;
+}
+
+.thumbnail.active {
+  border-color: #1a1a1a;
 }
 
 .house-info-col {
@@ -133,4 +144,28 @@
 
 .review-body p {
   margin: 0;
+}
+
+@media (max-width: 900px) {
+  .house-top-section {
+    flex-direction: column;
+  }
+  
+  .house-images-col {
+    width: 100%;
+  }
+
+  .house-title {
+    font-size: 36px;
+  }
+
+  .house-details-page {
+    padding: 20px 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .reviews-container {
+    flex-direction: column;
+  }
 }
