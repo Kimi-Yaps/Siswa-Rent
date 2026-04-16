@@ -9,12 +9,10 @@ const Footer = () => {
         <Link to="/">Home</Link>
         <Link to="/housing">Housing</Link>
         <Link to="/map">Map</Link>
-        <a href="#privacy">Privacy policy</a>
-        <a href="#terms">Terms</a>
       </div>
       <div className="footer-brand">
         <h2 className="pixel-text">
-          House Recommendation<br/>At Your Finger Tips
+          House Recommendation<br />At Your Finger Tips
         </h2>
       </div>
     </footer>
