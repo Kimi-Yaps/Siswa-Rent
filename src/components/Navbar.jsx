@@ -26,7 +26,7 @@ const Navbar = () => {
           <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>QuerySaja</Link>
         </div>
         <div className="nav-actions">
-          <a href="#signin" className="sign-in">Sign In</a>
+          <Link to="/signin" className="sign-in">Sign In</Link>
         </div>
       </nav>
     </header>

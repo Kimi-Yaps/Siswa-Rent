@@ -1,0 +1,134 @@
+.signin-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100vw;
+  background-color: #f4f1eb;
+  position: relative;
+  font-family: 'Arial', sans-serif;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.gradient-bg {
+  position: absolute;
+  top: 0;
+  height: 100vh;
+  z-index: 1;
+  pointer-events: none;
+  object-fit: contain;
+}
+
+.gradient-left {
+  left: 0;
+}
+
+.gradient-right {
+  right: 0;
+  transform: scaleX(-1);
+}
+
+.back-button {
+  position: absolute;
+  top: 40px;
+  left: 40px;
+  background: transparent;
+  border: none;
+  font-family: 'Recia', serif;
+  font-size: 18px;
+  color: #1a1a1a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: opacity 0.2s;
+  z-index: 10;
+}
+
+.back-button:hover {
+  opacity: 0.7;
+}
+
+.signin-card {
+  background-color: #fff;
+  width: 100%;
+  max-width: 440px;
+  padding: 44px;
+  border-radius: 8px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+  box-sizing: border-box;
+  position: relative;
+  z-index: 10;
+}
+
+.signin-title {
+  font-family: 'Recia', serif;
+  font-size: 26px;
+  color: #1a1a1a;
+  font-weight: normal;
+  margin: 0 0 30px 0;
+}
+
+.signin-input {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid #666;
+  padding: 8px 0;
+  font-size: 15px;
+  color: #1a1a1a;
+  outline: none;
+  background: transparent;
+  margin-bottom: 16px;
+  transition: border-bottom-color 0.2s;
+  box-sizing: border-box;
+}
+
+.signin-input::placeholder {
+  color: #888;
+}
+
+.signin-input:focus {
+  border-bottom: 2px solid #7D9E4E;
+  margin-bottom: 15px;
+}
+
+.signin-links {
+  font-size: 13px;
+  margin-bottom: 36px;
+}
+
+.signin-links p {
+  margin: 10px 0;
+  color: #1a1a1a;
+}
+
+.signin-links a {
+  color: #7D9E4E;
+  text-decoration: none;
+}
+
+.signin-links a:hover {
+  text-decoration: underline;
+}
+
+.signin-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.next-button {
+  background-color: #7D9E4E;
+  color: #fff;
+  border: none;
+  padding: 10px 32px;
+  font-size: 15px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: 'Arial', sans-serif;
+  transition: background-color 0.2s;
+}
+
+.next-button:hover {
+  background-color: #6c8843;
+}
