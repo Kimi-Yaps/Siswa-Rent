@@ -1,0 +1,107 @@
+.hm-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow-x: hidden;
+  padding-bottom: 40px;
+  background-color: #f0ede0; /* Matching app background */
+}
+
+/* Stacks items directly so it fits properly on mobile screens */
+.hm-hero-section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  min-height: auto;
+  justify-content: center;
+}
+
+/* Highly subtle background to avoid any distraction */
+.hm-gradient {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 250px;
+  height: 250px;
+  opacity: 0.35;
+  filter: blur(45px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.hm-hero-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  width: 100%;
+}
+
+.hm-title-img {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.hm-welcome-card {
+  width: 100%;
+  max-width: 320px; /* Stretch towards needs without overflowing */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  height: auto;
+}
+
+.hm-faq-section {
+  padding: 20px 20px 40px;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.hm-faq-title {
+  font-size: 28px;
+  text-align: center;
+  margin-bottom: 30px;
+  font-weight: 600;
+  font-family: 'Recia', serif;
+  color: #1a1a1a;
+}
+
+.hm-faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.hm-faq-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
+
+.hm-faq-item h3 {
+  font-size: 16px;
+  margin: 0;
+  font-weight: 500;
+  line-height: 1.4;
+  padding-right: 15px;
+  font-family: 'Recia', serif;
+  color: #1a1a1a;
+}
+
+.hm-faq-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  font-family: monospace;
+  color: #1a1a1a;
+}

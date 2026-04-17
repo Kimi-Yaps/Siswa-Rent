@@ -84,3 +84,34 @@
 .filter-item:hover {
   background-color: #fff;
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .search-header {
+    padding: 30px 15px;
+  }
+  
+  .search-bar {
+    padding: 12px 16px;
+  }
+  
+  .search-bar input {
+    font-size: 16px;
+  }
+  
+  .filters-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .filter-item {
+    width: auto;
+    flex: 1;
+    min-width: 45%;
+  }
+
+  .filter-item:first-child {
+    flex: 0 0 100%;
+  }
+}
