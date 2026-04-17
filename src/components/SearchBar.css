@@ -98,6 +98,16 @@
   .search-bar input {
     font-size: 16px;
   }
+
+  .search-bar input::placeholder {
+    font-size: 13px;
+  }
+
+  .search-icon-l {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+  }
   
   .filters-row {
     flex-direction: row;
@@ -109,9 +119,5 @@
     width: auto;
     flex: 1;
     min-width: 45%;
-  }
-
-  .filter-item:first-child {
-    flex: 0 0 100%;
   }
 }

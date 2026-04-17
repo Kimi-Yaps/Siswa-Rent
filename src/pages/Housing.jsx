@@ -6,6 +6,7 @@ const dummyData = Array.from({ length: 8 }, (_, i) => ({
   id: i,
   name: 'Pulau Hujung',
   price: 'RM260 for Night',
+  distance: '21KM From UTM',
   image: '/Pulau_Tengah_11.webp',
 }));
 
@@ -26,10 +27,13 @@ const Housing = () => {
               onClick={() => window.location.href = '/details'} 
               style={{ cursor: 'pointer' }}
             >
-              <img src={item.image} alt={item.name} className="house-image" />
+              <div className="house-image-container">
+                <img src={item.image} alt={item.name} className="house-image" />
+              </div>
               <div className="house-details">
                 <h4>{item.name}</h4>
                 <p>{item.price}</p>
+                <p className="house-distance">{item.distance}</p>
               </div>
             </div>
           ))}

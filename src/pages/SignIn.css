@@ -132,3 +132,20 @@
 .next-button:hover {
   background-color: #6c8843;
 }
+
+@media (max-width: 768px) {
+  .signin-card {
+    padding: 30px 25px !important;
+    width: 90%;
+    max-width: 100%;
+  }
+
+  .back-button {
+    top: 20px;
+    left: 20px;
+  }
+  
+  .signin-title {
+    font-size: 22px;
+  }
+}

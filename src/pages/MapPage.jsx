@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SearchBar from '../components/SearchBar';
 import MapComponent from '../components/MapComponent';
+import './MapPage.css';
 
 const dummyHouses = [
   { 
@@ -31,31 +32,17 @@ const dummyHouses = [
 ];
 
 const MapPage = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
 
   const selectedHouse = dummyHouses.find(h => h.id === selectedId);
 
   const BurgerButton = !isSidebarOpen ? (
     <button 
+      className="map-burger-btn"
       onClick={() => setIsSidebarOpen(true)} 
-      style={{
-        position: 'absolute',
-        top: '60px',
-        left: '40px',
-        background: '#fff',
-        border: '1px solid #ccc',
-        borderRadius: '8px',
-        padding: '12px',
-        cursor: 'pointer',
-        boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 50
-      }}
     >
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
          <line x1="3" y1="12" x2="21" y2="12"></line>
          <line x1="3" y1="6" x2="21" y2="6"></line>
          <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -67,17 +54,7 @@ const MapPage = () => {
     <main style={{ flex: 1, padding: 0, margin: 0, display: 'flex', width: '100%', overflow: 'hidden', position: 'relative' }}>
       
       {/* Sidebar Push Navigation (ON THE LEFT) */}
-      <div style={{
-          width: isSidebarOpen ? '340px' : '0px',
-          backgroundColor: '#f4f1eb',
-          transition: 'width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
-          overflowY: 'hidden',
-          boxShadow: isSidebarOpen ? '2px 0 10px rgba(0,0,0,0.1)' : 'none',
-          borderRight: isSidebarOpen ? '1px solid #eee' : 'none',
-          flexShrink: 0,
-          zIndex: 10,
-          boxSizing: 'border-box'
-      }}>
+      <div className={`map-sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minWidth: '300px', position: 'relative' }}>
             
             <AnimatePresence mode="wait">
@@ -247,11 +224,15 @@ const MapPage = () => {
       {/* Main Map Viewport (Scales Automatically) */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, transition: 'all 0.4s ease', position: 'relative' }}>
         
-        {/* Burger Button is floating strictly top left */}
-        {BurgerButton}
-
-        {/* Scalable Search Container */}
-        <SearchBar />
+        {/* Top Controls Row */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', width: '100%' }}>
+            <div style={{ flexShrink: 0, zIndex: 50 }}>
+               {BurgerButton}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+               <SearchBar />
+            </div>
+        </div>
         
         <div style={{ padding: '0 20px 20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
            <MapComponent height="100%" />

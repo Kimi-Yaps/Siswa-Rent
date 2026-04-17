@@ -1,9 +1,9 @@
 import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import gradientSvg from '../assets/Gradient.svg';
 import './SignIn.css';
 
-const SignIn = () => {
+const ForgotPassword = () => {
   const navigate = useNavigate();
 
   return (
@@ -20,31 +20,24 @@ const SignIn = () => {
       </button>
 
       <div className="signin-card">
-        <h2 className="signin-title">Sign in</h2>
+        <h2 className="signin-title">Reset Password</h2>
+        
+        <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px', lineHeight: '1.5' }}>
+          Enter the email address associated with your account and we'll send you a link to securely reset your password.
+        </p>
 
         <input
-          type="text"
+          type="email"
           className="signin-input"
-          placeholder="Email"
+          placeholder="Email address"
         />
 
-        <input
-          type="password"
-          className="signin-input"
-          placeholder="Password"
-        />
-
-        <div className="signin-links">
-          <p>No account? <Link to="/signup">Create one!</Link></p>
-          <p><Link to="/forgot-password">Forgot password? Reset it here</Link></p>
-        </div>
-
-        <div className="signin-actions">
-          <button className="next-button" onClick={() => navigate('/auth-success', { state: { type: 'signin' } })}>Next</button>
+        <div className="signin-actions" style={{ marginTop: '20px' }}>
+          <button className="next-button" onClick={() => navigate('/auth-success', { state: { type: 'reset' } })}>Send Link</button>
         </div>
       </div>
     </main>
   );
 };
 
-export default SignIn;
+export default ForgotPassword;

@@ -31,13 +31,15 @@ const AuthSuccess = () => {
         </div>
         
         <h2 className="signin-title" style={{ marginBottom: '16px' }}>
-          {type === 'signup' ? 'Account Created!' : 'Welcome Back!'}
+          {type === 'signup' ? 'Account Created!' : type === 'reset' ? 'Link Sent!' : 'Welcome Back!'}
         </h2>
         
         <p style={{ color: '#666', fontSize: '15px', lineHeight: '1.5' }}>
           {type === 'signup' 
             ? 'Your account has been successfully created.' 
-            : 'You have been successfully signed in.'}
+            : type === 'reset' 
+              ? 'A password reset link has been sent to your email.'
+              : 'You have been successfully signed in.'}
           <br/><br/>
           Redirecting to home page shortly...
         </p>

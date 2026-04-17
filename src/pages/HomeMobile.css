@@ -18,28 +18,40 @@
   justify-content: center;
 }
 
-/* Highly subtle background to avoid any distraction */
 .hm-gradient {
   position: absolute;
-  top: 10%;
-  left: 50%;
-  transform: translateX(-50%);
   width: 250px;
   height: 250px;
-  opacity: 0.35;
-  filter: blur(45px);
+  opacity: 0.5;
+  filter: blur(40px);
   z-index: 0;
   pointer-events: none;
+}
+
+.gradient-left {
+  top: 50%;
+  left: 0;
+  transform: translate(-30%, -50%);
+}
+
+.gradient-right {
+  top: 50%;
+  right: 0;
+  transform: translate(30%, -50%);
 }
 
 .hm-hero-content {
   position: relative;
   z-index: 10;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 30px;
   width: 100%;
+}
+
+.hm-hero-images {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .hm-title-img {
@@ -50,10 +62,13 @@
 }
 
 .hm-welcome-card {
-  width: 100%;
-  max-width: 320px; /* Stretch towards needs without overflowing */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px; /* appropriately scaled smaller for mobile */
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  border-radius: 16px;
+  border-radius: 12px;
   height: auto;
 }
 
