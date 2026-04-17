@@ -13,42 +13,14 @@ const HouseDetails = () => {
   const [isMobile, setIsMobile] = useState(
     typeof window !== 'undefined' ? window.innerWidth <= 768 : false
   );
-  const [isExpanded, setIsExpanded] = useState({
-    price: typeof window !== 'undefined' ? window.innerWidth > 768 : true,
-    rating: typeof window !== 'undefined' ? window.innerWidth > 768 : true,
-    description: typeof window !== 'undefined' ? window.innerWidth > 768 : true,
-    owner: typeof window !== 'undefined' ? window.innerWidth > 768 : true
-  });
-
   useEffect(() => {
     const handleResize = () => {
-      const mobile = window.innerWidth <= 768;
-      setIsMobile(mobile);
-      if (mobile) {
-        setIsExpanded({
-          price: false,
-          rating: false,
-          description: false,
-          owner: false
-        });
-      } else {
-        setIsExpanded({
-          price: true,
-          rating: true,
-          description: true,
-          owner: true
-        });
-      }
+      setIsMobile(window.innerWidth <= 768);
     };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  const toggleExpand = (section) => {
-    if (!isMobile) return;
-    setIsExpanded(prev => ({ ...prev, [section]: !prev[section] }));
-  };
 
   return (
     <main className="house-details-page">
@@ -82,16 +54,10 @@ const HouseDetails = () => {
             <h1 className="house-title">Pulau Hujung Bilik 2</h1>
             
             <div className="info-card">
-              <div 
-                className={`info-header ${isMobile ? 'mobile-clickable' : ''}`} 
-                onClick={() => toggleExpand('price')}
-              >
+              <div className="info-header">
                 <span className="info-label">Price</span>
-                {isMobile && (
-                  <span className="expand-icon">{isExpanded.price ? '−' : '+'}</span>
-                )}
               </div>
-              <div className={`info-content ${isExpanded.price ? 'expanded' : ''}`}>
+              <div className="info-content expanded">
                 <p className="info-value">Contact for pricing</p>
                 <select
                   defaultValue=""
@@ -106,31 +72,19 @@ const HouseDetails = () => {
             </div>
 
             <div className="info-card">
-              <div 
-                className={`info-header ${isMobile ? 'mobile-clickable' : ''}`} 
-                onClick={() => toggleExpand('rating')}
-              >
+              <div className="info-header">
                 <span className="info-label">Rating</span>
-                {isMobile && (
-                  <span className="expand-icon">{isExpanded.rating ? '−' : '+'}</span>
-                )}
               </div>
-              <div className={`info-content ${isExpanded.rating ? 'expanded' : ''}`}>
+              <div className="info-content expanded">
                 <div className="rating-stars">★★★★☆ (4.5/5)</div>
               </div>
             </div>
 
             <div className="info-card">
-              <div 
-                className={`info-header ${isMobile ? 'mobile-clickable' : ''}`} 
-                onClick={() => toggleExpand('description')}
-              >
+              <div className="info-header">
                 <span className="info-label">Description</span>
-                {isMobile && (
-                  <span className="expand-icon">{isExpanded.description ? '−' : '+'}</span>
-                )}
               </div>
-              <div className={`info-content ${isExpanded.description ? 'expanded' : ''}`}>
+              <div className="info-content expanded">
                 <p className="info-description">
                   Experience tranquility at Pulau Hujung Bilik 2, a serene getaway 
                   nestled in nature. Perfect for those seeking peace and personal space.
@@ -139,16 +93,10 @@ const HouseDetails = () => {
             </div>
 
             <div className="info-card owner-card">
-              <div 
-                className={`info-header ${isMobile ? 'mobile-clickable' : ''}`} 
-                onClick={() => toggleExpand('owner')}
-              >
+              <div className="info-header">
                 <span className="info-label">Home Owner Information</span>
-                {isMobile && (
-                  <span className="expand-icon">{isExpanded.owner ? '−' : '+'}</span>
-                )}
               </div>
-              <div className={`info-content ${isExpanded.owner ? 'expanded' : ''}`}>
+              <div className="info-content expanded">
                 <div className="owner-info">
                   <div className="owner-avatar"></div>
                   <div className="owner-details">
