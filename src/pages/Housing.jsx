@@ -101,7 +101,27 @@ const Housing = () => {
                   >
                     <div className="house-image-container" style={{ backgroundColor: '#ececec' }}>
                       {firstImage ? (
-                        <img src={firstImage} alt={item.name} className="house-image" />
+                        <>
+                          <img 
+                            src={firstImage} 
+                            alt={item.name} 
+                            className="house-image" 
+                            onError={(e) => {
+                              try {
+                                e.target.style.display = 'none';
+                                if (e.target.nextElementSibling) {
+                                  e.target.nextElementSibling.style.display = 'flex';
+                                }
+                              } catch (err) {
+                                console.error('Error handling image fallback:', err);
+                              }
+                            }}
+                          />
+                          <div className="empty-image-placeholder" style={{ display: 'none', width: '100%', height: '100%', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '14px' }}>
+                             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '8px' }}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                             No Image Available
+                          </div>
+                        </>
                       ) : (
                         <div className="empty-image-placeholder" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '14px' }}>
                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '8px' }}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>

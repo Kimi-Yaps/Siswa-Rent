@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../components/supabaseClient';
 import './SearchBar.css';
 
-const SearchBar = ({ onSearch }) => {
+const SearchBar = ({ onSearch, onSubmit }) => {
   const [minBudget, setMinBudget] = useState('');
   const [maxBudget, setMaxBudget] = useState('');
   const [destination, setDestination] = useState('');
@@ -77,7 +77,12 @@ const SearchBar = ({ onSearch }) => {
         
         <div className="search-bar-container" style={{ position: 'relative', width: '100%' }}>
           <div className="search-bar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="search-icon-l">
+            <svg 
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
+              className="search-icon-l"
+              onClick={() => { if (onSubmit) onSubmit({ minBudget, maxBudget, destination }); setIsFocused(false); }}
+              style={{ cursor: onSubmit ? 'pointer' : 'default' }}
+            >
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
@@ -88,6 +93,12 @@ const SearchBar = ({ onSearch }) => {
               onChange={(e) => setDestination(e.target.value)}
               onFocus={() => setIsFocused(true)}
               onBlur={handleBlur}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  if (onSubmit) onSubmit({ minBudget, maxBudget, destination });
+                  setIsFocused(false);
+                }
+              }}
             />
           </div>
 
