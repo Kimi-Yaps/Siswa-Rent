@@ -1,0 +1,110 @@
+[
+  {
+    "locality": "Taman Universiti",
+    "min": 350,
+    "max": 1600,
+    "median": 1350,
+    "n_samples": 5,
+    "lat": 1.5581,
+    "lng": 103.6388
+  },
+  {
+    "locality": "Taman Mutiara Rini",
+    "min": 400,
+    "max": 1800,
+    "median": 1700,
+    "n_samples": 6,
+    "lat": 1.5514,
+    "lng": 103.6458
+  },
+  {
+    "locality": "Selesa Jaya",
+    "min": 450,
+    "max": 750,
+    "median": 550,
+    "n_samples": 3,
+    "lat": 1.5459,
+    "lng": 103.6429
+  },
+  {
+    "locality": "Taman Desa Skudai",
+    "min": 835,
+    "max": 1200,
+    "median": 1200,
+    "n_samples": 2,
+    "lat": 1.5343,
+    "lng": 103.6432
+  },
+  {
+    "locality": "Kangkar Pulai",
+    "min": 600,
+    "max": 600,
+    "median": 600,
+    "n_samples": 1,
+    "lat": 1.565,
+    "lng": 103.625
+  },
+  {
+    "locality": "Taman Nusa Bestari",
+    "min": 550,
+    "max": 2000,
+    "median": 2000,
+    "n_samples": 2,
+    "lat": 1.5488,
+    "lng": 103.7078
+  },
+  {
+    "locality": "Taman Bukit Indah",
+    "min": 420,
+    "max": 3000,
+    "median": 2000,
+    "n_samples": 4,
+    "lat": 1.5459,
+    "lng": 103.7249
+  },
+  {
+    "locality": "Taman Ungku Tun Aminah",
+    "min": 1800,
+    "max": 1800,
+    "median": 1800,
+    "n_samples": 1,
+    "lat": 1.519,
+    "lng": 103.674
+  },
+  {
+    "locality": "Taman Seri Orkid",
+    "min": 400,
+    "max": 400,
+    "median": 400,
+    "n_samples": 1,
+    "lat": 1.532,
+    "lng": 103.648
+  },
+  {
+    "locality": "Taman Mutiara Mas",
+    "min": 900,
+    "max": 3500,
+    "median": 3500,
+    "n_samples": 2,
+    "lat": 1.5533,
+    "lng": 103.6502
+  },
+  {
+    "locality": "Skudai",
+    "min": 350,
+    "max": 700,
+    "median": 700,
+    "n_samples": 2,
+    "lat": 1.5368,
+    "lng": 103.6558
+  },
+  {
+    "locality": "Taman Impian Emas",
+    "min": 1000,
+    "max": 1000,
+    "median": 1000,
+    "n_samples": 1,
+    "lat": 1.544,
+    "lng": 103.677
+  }
+]
