@@ -101,8 +101,14 @@ const MapPage = () => {
                                  border: '1px solid rgba(0,0,0,0.03)'
                                }}
                             >
-                               <motion.div layoutId={`image-container-${house.id}`} style={{ width: '86px', height: '86px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0 }}>
-                                  <motion.img src={house.image} layoutId={`image-${house.id}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                               <motion.div layoutId={`image-container-${house.id}`} style={{ width: '86px', height: '86px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0, backgroundColor: '#ececec' }}>
+                                  {house.image ? (
+                                    <motion.img src={house.image} layoutId={`image-${house.id}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  ) : (
+                                    <div className="empty-image-placeholder" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '12px', textAlign: 'center', padding: '5px' }}>
+                                      No Image
+                                    </div>
+                                  )}
                                </motion.div>
                                
                                <div style={{ marginLeft: '16px', flex: 1 }}>
@@ -156,8 +162,15 @@ const MapPage = () => {
                          </svg>
                       </button>
 
-                      <motion.div layoutId={`image-container-${selectedHouse.id}`} style={{ position: 'relative', width: '100%', aspectRatio: '1/1', borderRadius: '16px', overflow: 'hidden', marginBottom: '20px' }}>
-                        <motion.img layoutId={`image-${selectedHouse.id}`} src={selectedHouse.image} alt={selectedHouse.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      <motion.div layoutId={`image-container-${selectedHouse.id}`} style={{ position: 'relative', width: '100%', aspectRatio: '1/1', borderRadius: '16px', overflow: 'hidden', marginBottom: '20px', backgroundColor: '#ececec' }}>
+                        {selectedHouse.image ? (
+                          <motion.img layoutId={`image-${selectedHouse.id}`} src={selectedHouse.image} alt={selectedHouse.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                        ) : (
+                          <div className="empty-image-placeholder" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '16px', flexDirection: 'column' }}>
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '10px' }}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                            No Image Available
+                          </div>
+                        )}
                       </motion.div>
                       
                       <div style={{ textAlign: 'center', marginBottom: '24px' }}>
@@ -195,7 +208,7 @@ const MapPage = () => {
                         style={{ marginTop: 'auto', paddingTop: '20px' }}
                       >
                         <button 
-                          onClick={() => window.location.href = '/details'} 
+                          onClick={() => window.location.href = `/details/${selectedHouse.id}`} 
                           style={{
                             width: '100%',
                             backgroundColor: '#7D9E4E',

@@ -121,3 +121,38 @@
     min-width: 45%;
   }
 }
+
+.search-recommendations {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 5px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 100;
+}
+
+.rec-item {
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  font-family: 'Recia', serif;
+  font-size: 16px;
+  color: #1a1a1a;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.rec-item:last-child {
+  border-bottom: none;
+}
+
+.rec-item:hover {
+  background-color: #f0ede0;
+}

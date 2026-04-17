@@ -29,7 +29,7 @@ const AppContent = () => {
             <Route path="/" element={<PixelTransition><Home /></PixelTransition>} />
             <Route path="/housing" element={<PixelTransition><Housing /></PixelTransition>} />
             <Route path="/map" element={<PixelTransition><MapPage /></PixelTransition>} />
-            <Route path="/details" element={<PixelTransition><HouseDetails /></PixelTransition>} />
+            <Route path="/details/:id" element={<PixelTransition><HouseDetails /></PixelTransition>} />
             <Route path="/signin" element={<PixelTransition><SignIn /></PixelTransition>} />
             <Route path="/signup" element={<PixelTransition><SignUp /></PixelTransition>} />
             <Route path="/forgot-password" element={<PixelTransition><ForgotPassword /></PixelTransition>} />
