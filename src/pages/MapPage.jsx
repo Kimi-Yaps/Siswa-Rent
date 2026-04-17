@@ -303,7 +303,12 @@ const MapPage = () => {
         </div>
 
         <div style={{ padding: '0 20px 20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <MapComponent height="100%" />
+          <MapComponent 
+            height="100%" 
+            houses={filteredHouses} 
+            selectedId={selectedId} 
+            onMarkerClick={setSelectedId} 
+          />
         </div>
       </div>
     </main>
