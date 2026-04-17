@@ -1,3 +1,4 @@
+/* src/pages/HouseDetails.css */
 .house-details-page {
   padding: 40px 20px;
   max-width: 1200px;
@@ -11,7 +12,7 @@
   display: flex;
   flex-direction: column;
   gap: 30px;
-  padding-left: 20px; /* Matching the offset in the design */
+  padding-left: 20px;
 }
 
 .house-title {
@@ -28,7 +29,7 @@
 }
 
 .house-images-col {
-  width: 400px; /* Adjust according to picture */
+  width: 400px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -39,6 +40,7 @@
   width: 100%;
   aspect-ratio: 1 / 1;
   overflow: hidden;
+  position: relative;
 }
 
 .main-image {
@@ -46,6 +48,17 @@
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.image-counter {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 14px;
 }
 
 .thumbnails-container {
@@ -77,21 +90,132 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 15px;
   padding-top: 10px;
   font-size: 18px;
 }
 
-.info-item {
-  margin-bottom: 5px;
+.info-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-header.mobile-clickable {
+  cursor: pointer;
+  padding: 15px 0;
+  border-bottom: 1px solid #eaeaea;
 }
 
 .info-label {
+  font-weight: 600;
   color: #1a1a1a;
 }
 
-.mt-auto {
-  margin-top: 60px;
+.expand-icon {
+  font-size: 24px;
+  color: #1a1a1a;
+}
+
+.info-content {
+  display: none;
+  overflow: hidden;
+}
+
+.info-content.expanded {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.info-value, .info-description {
+  margin: 0;
+  line-height: 1.5;
+  color: #333;
+}
+
+.compare-dropdown {
+  width: 100%;
+  border: 1px solid #e0e0e0;
+  background-color: #f0ede0;
+  outline: none;
+  color: #1a1a1a;
+  font-family: inherit;
+  font-size: 16px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%23888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  max-width: 300px;
+}
+
+.rating-stars {
+  color: #ffb400;
+  font-size: 18px;
+}
+
+.owner-card {
+  margin-top: auto;
+}
+
+.owner-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 10px 0;
+}
+
+.owner-avatar {
+  width: 50px;
+  height: 50px;
+  background-color: #d8d8d8;
+  border-radius: 50%;
+}
+
+.owner-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.owner-name {
+  margin: 0;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.owner-contact {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.contact-btn {
+  width: 100%;
+  padding: 15px;
+  background-color: #1a1a1a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 20px;
 }
 
 .reviews-section {
@@ -107,8 +231,7 @@
 .reviews-container {
   display: flex;
   gap: 20px;
-  padding: 20px 0;
-  border-radius: 4px;
+  padding: 10px 0;
 }
 
 .review-card {
@@ -118,13 +241,15 @@
   padding: 25px;
   min-height: 200px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .review-header {
   display: flex;
   align-items: center;
   gap: 15px;
-  margin-bottom: 25px;
 }
 
 .review-avatar {
@@ -134,18 +259,51 @@
   border-radius: 50%;
 }
 
+.review-meta {
+  display: flex;
+  flex-direction: column;
+}
+
 .review-name {
   font-size: 18px;
+  font-weight: 600;
+}
+
+.review-date {
+  font-size: 14px;
+  color: #888;
+}
+
+.review-rating {
+  margin-left: auto;
+  color: #ffb400;
+  letter-spacing: 2px;
 }
 
 .review-body {
-  font-size: 18px;
+  font-size: 16px;
+  color: #333;
+  line-height: 1.5;
 }
 
 .review-body p {
   margin: 0;
 }
 
+.view-all-reviews {
+  width: 100%;
+  padding: 15px;
+  background-color: transparent;
+  color: #1a1a1a;
+  border: 1px solid #1a1a1a;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+/* Mobile Responsiveness */
 @media (max-width: 900px) {
   .house-top-section {
     flex-direction: column;
@@ -162,10 +320,38 @@
   .house-details-page {
     padding: 20px 10px;
   }
+  
+  .house-details-content {
+    padding-left: 0;
+  }
+  
+  .compare-dropdown {
+    max-width: 100%;
+  }
 }
 
 @media (max-width: 768px) {
   .reviews-container {
     flex-direction: column;
+  }
+  
+  .thumbnails-container {
+    display: flex; /* Kept thumbnails */
+  }
+
+  .info-card {
+    gap: 0;
+  }
+  
+  .info-content.expanded {
+    padding: 15px 0 20px;
+  }
+  
+  .owner-card {
+    margin-top: 0;
+  }
+  
+  .main-image-container {
+    border-radius: 8px;
   }
 }
