@@ -14,10 +14,11 @@ const SignIn = lazy(() => import('./pages/SignIn'));
 const SignUp = lazy(() => import('./pages/SignUp'));
 const AuthSuccess = lazy(() => import('./pages/AuthSuccess'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 
 const AppContent = () => {
   const location = useLocation();
-  const isAuthPage = ['/signin', '/signup', '/forgot-password', '/auth-success'].includes(location.pathname);
+  const isAuthPage = ['/signin', '/signup', '/forgot-password', '/auth-success', '/reset-password'].includes(location.pathname);
 
   return (
     <div className="app-container">
@@ -33,6 +34,7 @@ const AppContent = () => {
             <Route path="/signin" element={<PixelTransition><SignIn /></PixelTransition>} />
             <Route path="/signup" element={<PixelTransition><SignUp /></PixelTransition>} />
             <Route path="/forgot-password" element={<PixelTransition><ForgotPassword /></PixelTransition>} />
+            <Route path="/reset-password" element={<PixelTransition><ResetPassword /></PixelTransition>} />
             <Route path="/auth-success" element={<PixelTransition><AuthSuccess /></PixelTransition>} />
           </Routes>
         </AnimatePresence>

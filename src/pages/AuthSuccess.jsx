@@ -36,7 +36,7 @@ const AuthSuccess = () => {
         
         <p style={{ color: '#666', fontSize: '15px', lineHeight: '1.5' }}>
           {type === 'signup' 
-            ? 'Your account has been successfully created.' 
+            ? 'Your account has been successfully created. Please check your email to verify your account if required.' 
             : type === 'reset' 
               ? 'A password reset link has been sent to your email.'
               : 'You have been successfully signed in.'}

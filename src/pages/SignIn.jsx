@@ -1,10 +1,38 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { supabase } from '../components/supabaseClient';
 import gradientSvg from '../assets/Gradient.svg';
 import './SignIn.css';
 
 const SignIn = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSignIn = async () => {
+    if (!email || !password) {
+      setError('Please provide both email and password.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (signInError) {
+      setError(signInError.message);
+      setLoading(false);
+    } else {
+      setLoading(false);
+      navigate('/auth-success', { state: { type: 'signin' } });
+    }
+  };
 
   return (
     <main className="signin-page">
@@ -22,16 +50,27 @@ const SignIn = () => {
       <div className="signin-card">
         <h2 className="signin-title">Sign in</h2>
 
+        {error && <div style={{ color: '#d32f2f', backgroundColor: '#fdecea', padding: '10px', borderRadius: '8px', marginBottom: '15px', fontSize: '14px', fontFamily: 'Arial, sans-serif' }}>{error}</div>}
+
         <input
-          type="text"
+          type="email"
           className="signin-input"
           placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={loading}
         />
 
         <input
           type="password"
           className="signin-input"
           placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          disabled={loading}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleSignIn();
+          }}
         />
 
         <div className="signin-links">
@@ -40,7 +79,9 @@ const SignIn = () => {
         </div>
 
         <div className="signin-actions">
-          <button className="next-button" onClick={() => navigate('/auth-success', { state: { type: 'signin' } })}>Next</button>
+          <button className="next-button" onClick={handleSignIn} disabled={loading}>
+            {loading ? 'Signing in...' : 'Next'}
+          </button>
         </div>
       </div>
     </main>
