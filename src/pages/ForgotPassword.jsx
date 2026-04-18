@@ -24,7 +24,10 @@ const ForgotPassword = () => {
     });
 
     if (resetError) {
-      setError(resetError.message);
+      const friendlyMessage = resetError.message === 'email rate limit exceeded'
+        ? 'Too many reset requests. Please wait a few minutes before trying again.'
+        : resetError.message;
+      setError(friendlyMessage);
       setLoading(false);
     } else {
       setLoading(false);
