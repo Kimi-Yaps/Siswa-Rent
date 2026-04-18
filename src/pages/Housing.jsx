@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import SearchBar from '../components/SearchBar';
 import { supabase } from '../components/supabaseClient';
 import { heapSort } from '../utils/heapSort';
@@ -8,10 +8,13 @@ const Housing = () => {
   const [properties, setProperties] = useState([]);
   const [filteredProperties, setFilteredProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [favorites, setFavorites] = useState(new Set());
+  const [sessionUser, setSessionUser] = useState(null);
 
   const fetchProperties = async () => {
     setLoading(true);
     try {
+      // 1. Get properties
       const { data, error } = await supabase
         .from('properties')
         .select('*');
@@ -22,9 +25,24 @@ const Housing = () => {
       
       setProperties(data || []);
       setFilteredProperties(data || []);
+
+      // 2. Get active session for favorites
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setSessionUser(session.user);
+        const { data: favs, error: favErr } = await supabase
+          .from('favorites')
+          .select('property_id')
+          .eq('user_id', session.user.id);
+        
+        if (!favErr && favs) {
+          const favSet = new Set(favs.map(f => f.property_id));
+          setFavorites(favSet);
+        }
+      }
+
     } catch (err) {
-      console.error('Error fetching properties from DB:', err);
-      // Fallback to empty array to prevent map crashes
+      console.error('Error fetching data from DB:', err);
       setProperties([]);
       setFilteredProperties([]);
     } finally {
@@ -36,7 +54,32 @@ const Housing = () => {
     fetchProperties();
   }, []);
 
-  const handleSearch = (filters) => {
+  const handleRemoveFavorite = async (e, propertyId) => {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to remove this property from your favorites?")) {
+      return;
+    }
+    
+    try {
+       const { error } = await supabase
+         .from('favorites')
+         .delete()
+         .match({ user_id: sessionUser.id, property_id: propertyId });
+         
+       if (error) throw error;
+       
+       setFavorites(prev => {
+         const newFavs = new Set(prev);
+         newFavs.delete(propertyId);
+         return newFavs;
+       });
+    } catch(err) {
+      console.error("Failed to remove favorite:", err);
+      alert("Failed to remove favorite.");
+    }
+  };
+
+  const handleSearch = useCallback((filters) => {
     try {
       const { destination, minBudget, maxBudget } = filters;
       
@@ -72,7 +115,7 @@ const Housing = () => {
     } catch (err) {
       console.error('Error processing search filters:', err);
     }
-  };
+  }, [properties]);
 
   return (
     <main className="housing-page">
@@ -97,8 +140,35 @@ const Housing = () => {
                     key={item.id} 
                     className="house-card" 
                     onClick={() => window.location.href = `/details/${item.id}`} 
-                    style={{ cursor: 'pointer' }}
+                    style={{ cursor: 'pointer', position: 'relative' }}
                   >
+                    {favorites.has(item.id) && (
+                      <button
+                        onClick={(e) => handleRemoveFavorite(e, item.id)}
+                        style={{
+                          position: 'absolute',
+                          top: '10px',
+                          right: '10px',
+                          background: 'white',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '32px',
+                          height: '32px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          zIndex: 20,
+                          boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+                          color: '#ff4b4b'
+                        }}
+                        title="Remove Favorite"
+                      >
+                         <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                         </svg>
+                      </button>
+                    )}
                     <div className="house-image-container" style={{ backgroundColor: '#ececec' }}>
                       {firstImage ? (
                         <>

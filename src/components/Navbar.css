@@ -94,6 +94,30 @@
   color: #1a1a1a;
 }
 
+.auth-links {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1a1a1a;
+  text-decoration: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  padding: 8px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.03);
+}
+
+.nav-icon:hover {
+  opacity: 0.7;
+  transform: scale(1.05);
+  background: rgba(0,0,0,0.06);
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
   .nav-main {

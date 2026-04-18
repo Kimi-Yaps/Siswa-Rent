@@ -10,6 +10,8 @@ const MapPage = () => {
   const [selectedId, setSelectedId] = useState(null);
   const [houses, setHouses] = useState([]);
   const [filteredHouses, setFilteredHouses] = useState([]);
+  const [favorites, setFavorites] = useState(new Set());
+  const [sessionUser, setSessionUser] = useState(null);
 
   const fetchHouses = async () => {
     try {
@@ -21,10 +23,49 @@ const MapPage = () => {
 
       setHouses(data || []);
       setFilteredHouses(data || []);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setSessionUser(session.user);
+        const { data: favs, error: favErr } = await supabase
+          .from('favorites')
+          .select('property_id')
+          .eq('user_id', session.user.id);
+        
+        if (!favErr && favs) {
+          setFavorites(new Set(favs.map(f => f.property_id)));
+        }
+      }
+
     } catch (err) {
       console.error('Failed to fetch houses:', err);
       setHouses([]);
       setFilteredHouses([]);
+    }
+  };
+
+  const handleRemoveFavorite = async (e, propertyId) => {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to remove this property from your favorites?")) {
+      return;
+    }
+    
+    try {
+       const { error } = await supabase
+         .from('favorites')
+         .delete()
+         .match({ user_id: sessionUser.id, property_id: propertyId });
+         
+       if (error) throw error;
+       
+       setFavorites(prev => {
+         const newFavs = new Set(prev);
+         newFavs.delete(propertyId);
+         return newFavs;
+       });
+    } catch(err) {
+      console.error("Failed to remove favorite:", err);
+      alert("Failed to remove favorite.");
     }
   };
 
@@ -117,6 +158,34 @@ const MapPage = () => {
                         border: '1px solid rgba(0,0,0,0.03)'
                       }}
                     >
+                      {favorites.has(house.id) && (
+                        <button
+                          onClick={(e) => handleRemoveFavorite(e, house.id)}
+                          style={{
+                            position: 'absolute',
+                            top: '8px',
+                            right: '8px',
+                            background: 'white',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: '24px',
+                            height: '24px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            zIndex: 20,
+                            boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+                            color: '#ff4b4b'
+                          }}
+                          title="Remove Favorite"
+                        >
+                           <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                           </svg>
+                        </button>
+                      )}
+                      
                       {/* Thumbnail */}
                       <motion.div
                         layoutId={`image-container-${house.id}`}

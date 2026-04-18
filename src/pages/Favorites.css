@@ -1,0 +1,225 @@
+.favorites-page {
+  min-height: calc(100vh - 80px); /* accounting for navbar */
+  background-color: #f8f9fa;
+  padding: 40px 20px;
+  font-family: 'Arial', sans-serif;
+}
+
+.favorites-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.favorites-title {
+  font-family: 'Recia', serif;
+  font-size: 32px;
+  color: #1a1a1a;
+  margin-bottom: 30px;
+}
+
+.empty-favorites {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+
+.empty-favorites p {
+  color: #666;
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.browse-link {
+  display: inline-block;
+  background-color: #7D9E4E;
+  color: white;
+  text-decoration: none;
+  padding: 12px 24px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.browse-link:hover {
+  background-color: #6c8843;
+}
+
+.favorites-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 25px;
+}
+
+.favorite-card {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.favorite-image-container {
+  height: 200px;
+  overflow: hidden;
+  position: relative;
+  display: block;
+}
+
+.favorite-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.favorite-image-container:hover .favorite-image {
+  transform: scale(1.05);
+}
+
+.favorite-image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+}
+
+.favorite-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.favorite-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.favorite-name {
+  font-family: 'Recia', serif;
+  font-size: 18px;
+  font-weight: bold;
+  color: #1a1a1a;
+  text-decoration: none;
+  margin: 0;
+  flex-grow: 1;
+  padding-right: 15px;
+}
+
+.favorite-name:hover {
+  color: #7D9E4E;
+}
+
+.remove-fav-btn {
+  background: transparent;
+  border: none;
+  color: #ff4b4b;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  transition: transform 0.2s;
+}
+
+.remove-fav-btn:hover {
+  transform: scale(1.1);
+}
+
+.favorite-price {
+  font-size: 16px;
+  font-weight: bold;
+  color: #7D9E4E;
+  margin: 0 0 5px 0;
+}
+
+.favorite-location {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 15px 0;
+}
+
+.favorite-notes-section {
+  margin-top: auto;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 15px;
+}
+
+.notes-display {
+  cursor: pointer;
+  padding: 10px;
+  background: #f9f9f9;
+  border-radius: 4px;
+  border: 1px dashed #ddd;
+  transition: background 0.2s;
+}
+
+.notes-display:hover {
+  background: #f0f0f0;
+}
+
+.notes-text {
+  font-size: 13px;
+  color: #444;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.add-note-prompt {
+  font-size: 13px;
+  color: #888;
+  margin: 0;
+  text-align: center;
+  font-style: italic;
+}
+
+.notes-editor textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #7D9E4E;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 60px;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+  outline: none;
+}
+
+.notes-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.notes-actions button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  border: none;
+}
+
+.cancel-note {
+  background: transparent;
+  color: #666;
+}
+
+.cancel-note:hover {
+  background: #f0f0f0;
+}
+
+.save-note {
+  background: #7D9E4E;
+  color: white;
+}
+
+.save-note:hover {
+  background: #6c8843;
+}

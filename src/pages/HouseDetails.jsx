@@ -17,6 +17,10 @@ const HouseDetails = () => {
   const [images, setImages] = useState([]);
   const [activeIndex, setActiveIndex] = useState(0);
   
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
+  const [sessionUser, setSessionUser] = useState(null);
+
   const [isMobile, setIsMobile] = useState(
     typeof window !== 'undefined' ? window.innerWidth <= 768 : false
   );
@@ -31,6 +35,15 @@ const HouseDetails = () => {
     const loadDetails = async () => {
       try {
         if (!id) return;
+
+        // Check active session
+        const { data: { session } } = await supabase.auth.getSession();
+        let user = null;
+        if (session) {
+          user = session.user;
+          setSessionUser(user);
+        }
+
         const { data, error } = await supabase
           .from('properties')
           .select('*')
@@ -43,12 +56,77 @@ const HouseDetails = () => {
         if (data && data.photos_urls) {
            setImages(data.photos_urls);
         }
+
+        // Check favorite status if logged in
+        if (user) {
+          const { data: favData, error: favError } = await supabase
+            .from('favorites')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('property_id', id)
+            .maybeSingle();
+            
+          if (!favError && favData) {
+             setIsFavorite(true);
+          }
+        }
+
       } catch (err) {
         console.error('Failed to load property details:', err);
       }
     };
     loadDetails();
   }, [id]);
+
+  const handleToggleFavorite = async () => {
+    try {
+      setFavoriteLoading(true);
+      if (!sessionUser) {
+        alert("Please sign in to add to favorites.");
+        return;
+      }
+      
+      const userId = sessionUser.id;
+
+      if (isFavorite) {
+        if (!window.confirm("Are you sure you want to remove this property from your favorites?")) {
+           setFavoriteLoading(false);
+           return;
+        }
+
+        // Remove favorite
+        const { error } = await supabase
+          .from('favorites')
+          .delete()
+          .match({ user_id: userId, property_id: id });
+        
+        if (error) throw error;
+        setIsFavorite(false);
+      } else {
+        // Add favorite
+        const { error } = await supabase
+          .from('favorites')
+          .insert({ user_id: userId, property_id: id });
+          
+        if (error) {
+           // Handle unique constraint violation gracefully
+           if (error.code === '23505') {
+               setIsFavorite(true); // already favorited
+           } else {
+               throw error;
+           }
+        } else {
+           setIsFavorite(true);
+           alert("Added to favorites successfully!");
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update favorites.");
+    } finally {
+      setFavoriteLoading(false);
+    }
+  };
 
   // Barebones load state (just empty architecture rather than spinner)
   if (!property) {
@@ -179,9 +257,36 @@ const HouseDetails = () => {
               </div>
             </div>
 
-            {isMobile && (
-              <button className="contact-btn">Contact Owner</button>
-            )}
+            <div className="action-buttons-container" style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+              <button 
+                onClick={handleToggleFavorite} 
+                disabled={favoriteLoading}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  backgroundColor: isFavorite ? '#ff4b4b' : '#7D9E4E',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: favoriteLoading ? 'not-allowed' : 'pointer',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  transition: 'opacity 0.2s'
+                }}
+              >
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill={isFavorite ? "currentColor" : "none"} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+                {isFavorite ? 'Remove Favorite' : 'Save to Favorites'}
+              </button>
+
+              {isMobile && (
+                <button className="contact-btn" style={{ flex: 1 }}>Contact Owner</button>
+              )}
+            </div>
           </div>
         </div>
 
