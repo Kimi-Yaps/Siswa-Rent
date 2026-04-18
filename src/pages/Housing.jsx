@@ -4,6 +4,14 @@ import { supabase } from '../components/supabaseClient';
 import { heapSort } from '../utils/heapSort';
 import './Housing.css';
 
+const getCompiledPrice = (property) => {
+  if (property.price_avg) return property.price_avg;
+  if (property.price_min && property.price_max) {
+    return ((parseFloat(property.price_min) + parseFloat(property.price_max)) / 2).toFixed(2);
+  }
+  return property.price || 'N/A';
+};
+
 const Housing = () => {
   const [properties, setProperties] = useState([]);
   const [filteredProperties, setFilteredProperties] = useState([]);
@@ -201,7 +209,7 @@ const Housing = () => {
                     </div>
                     <div className="house-details">
                       <h4>{item.name}</h4>
-                      <p>RM{item.price}</p>
+                      <p>RM {getCompiledPrice(item)}</p>
                       <p className="house-distance">
                         {item.neighborhood ? `${item.neighborhood}` : (item.city || 'Unknown Location')}
                       </p>

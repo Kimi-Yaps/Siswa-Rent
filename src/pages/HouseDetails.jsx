@@ -11,6 +11,14 @@ const getInitial = (name) => {
   }
 };
 
+const getCompiledPrice = (property) => {
+  if (property.price_avg) return property.price_avg;
+  if (property.price_min && property.price_max) {
+    return ((parseFloat(property.price_min) + parseFloat(property.price_max)) / 2).toFixed(2);
+  }
+  return property.price || 'N/A';
+};
+
 const HouseDetails = () => {
   const { id } = useParams();
   const [property, setProperty] = useState(null);
@@ -200,7 +208,7 @@ const HouseDetails = () => {
                 <span className="info-label">Price</span>
               </div>
               <div className="info-content expanded">
-                <p className="info-value">RM {property.price}</p>
+                <p className="info-value">RM {getCompiledPrice(property)}</p>
                 <select
                   defaultValue=""
                   className="compare-dropdown"
