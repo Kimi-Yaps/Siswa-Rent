@@ -1,15 +1,15 @@
 .profile-page {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   min-height: 100vh;
   width: 100vw;
   background-color: #f4f1eb;
   position: relative;
   font-family: 'Arial', sans-serif;
   box-sizing: border-box;
-  overflow: hidden;
-  padding: 80px 20px; /* Accounts for navbar occasionally if needed, but safe padding overall */
+  overflow-y: auto;
+  padding: 100px 20px 60px; /* top pad clears navbar, bottom pad for breathing room */
 }
 
 .gradient-bg {
@@ -40,14 +40,6 @@
   box-sizing: border-box;
   position: relative;
   z-index: 10;
-  max-height: 85vh;
-  overflow-y: auto;
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
-}
-
-.profile-card::-webkit-scrollbar {
-  display: none; /* Chrome, Safari and Opera */
 }
 
 .profile-header {

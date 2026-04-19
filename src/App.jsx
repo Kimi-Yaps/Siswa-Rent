@@ -4,6 +4,7 @@ import { AnimatePresence } from 'framer-motion';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import PixelTransition from './components/PixelTransition';
+import { ProfileProvider } from './context/ProfileContext';
 import './App.css';
 
 const Home = lazy(() => import('./pages/Home'));
@@ -52,7 +53,9 @@ const AppContent = () => {
 function App() {
   return (
     <Router>
-      <AppContent />
+      <ProfileProvider>
+        <AppContent />
+      </ProfileProvider>
     </Router>
   );
 }

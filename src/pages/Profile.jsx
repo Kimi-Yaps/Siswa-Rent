@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../components/supabaseClient';
+import { useProfile } from '../context/ProfileContext';
 import gradientSvg from '../assets/Gradient.svg';
 import './Profile.css';
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { updateAvatar, updateUserName } = useProfile();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -42,14 +44,15 @@ const Profile = () => {
         setProfile(prev => ({ ...prev, id: user.id, email: user.email }));
 
         // Fetch existing profile from public.profiles
+        // Use maybeSingle() instead of single() to avoid 406 error when no profile row exists yet
         const { data, error: profileError } = await supabase
           .from('profiles')
           .select('full_name, avatar_url, university, phone, preferred_lang')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
 
-        if (profileError && profileError.code !== 'PGRST116') {
-          throw profileError; // Ignore row not found, it means it's a new user without a profile setup yet
+        if (profileError) {
+          throw profileError;
         }
 
         if (data) {
@@ -114,8 +117,10 @@ const Profile = () => {
         });
 
       if (saveError) throw saveError;
-      
-      setSuccess('Profile updated successfully!');
+
+      updateUserName(profile.full_name); // sync navbar name instantly
+      setSuccess('Profile updated successfully! Redirecting...');
+      setTimeout(() => navigate('/'), 1500);
     } catch (err) {
       console.error('Error saving profile:', err.message);
       setError('Failed to save profile changes.');
@@ -167,6 +172,7 @@ const Profile = () => {
 
       console.log('New avatar URL:', cachebustedUrl);
       setProfile(prev => ({ ...prev, avatar_url: cachebustedUrl }));
+      updateAvatar(cachebustedUrl); // sync navbar instantly
       setSuccess('Avatar updated! Click Save Changes to update your profile.');
 
     } catch (err) {
