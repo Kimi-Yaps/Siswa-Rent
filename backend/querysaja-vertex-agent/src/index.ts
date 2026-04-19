@@ -28,9 +28,33 @@ app.post('/api/search', async (req, res) => {
     console.log('[Route] properties count:', properties?.length || 0);
 
     if (properties && properties.length > 0) {
+      const dbProperties = properties.map((p: any) => ({
+        place_id: p.place_id,
+        name: p.name,
+        address: p.address,
+        neighborhood: p.neighborhood,
+        city: p.city || 'Johor Bahru',
+        state: p.state || 'Johor',
+        latitude: p.latitude,
+        longitude: p.longitude,
+        price: p.min_price ?? p.max_price ?? null,
+        price_source: p.price_source || 'iproperty',
+        property_type: p.property_type || null,
+        furnished: p.furnished ?? null,
+        vibes: p.vibes || [],
+        amenities: p.amenities || [],
+        photos_urls: p.photos_urls || [],
+        google_rating: p.google_rating ?? null,
+        source: p.source || 'google_places',
+        user_review: p.user_review ?? null,
+        price_avg: p.price_avg ?? p.min_price ?? p.max_price ?? null,
+        price_min: p.min_price ?? null,
+        price_max: p.max_price ?? null,
+      }));
+
       const { data: propData, error: propError } = await supabase
         .from('properties')
-        .upsert(properties, { onConflict: 'place_id' })
+        .upsert(dbProperties, { onConflict: 'place_id' })
         .select();
 
       if (propError) {
@@ -38,8 +62,6 @@ app.post('/api/search', async (req, res) => {
       } else {
         console.log('[Supabase] Upserted properties rows:', propData?.length ?? 0);
       }
-    } else {
-      console.log('[Supabase] No properties to upsert');
     }
 
     if (user_id && saved_search) {

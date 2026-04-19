@@ -5,6 +5,8 @@ import MapComponent from '../components/MapComponent';
 import { supabase } from '../components/supabaseClient';
 import './MapPage.css';
 
+const API_BASE = 'http://localhost:3400';
+
 const MapPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
@@ -31,7 +33,7 @@ const MapPage = () => {
           .from('favorites')
           .select('property_id')
           .eq('user_id', session.user.id);
-        
+
         if (!favErr && favs) {
           setFavorites(new Set(favs.map(f => f.property_id)));
         }
@@ -49,21 +51,21 @@ const MapPage = () => {
     if (!window.confirm("Are you sure you want to remove this property from your favorites?")) {
       return;
     }
-    
+
     try {
-       const { error } = await supabase
-         .from('favorites')
-         .delete()
-         .match({ user_id: sessionUser.id, property_id: propertyId });
-         
-       if (error) throw error;
-       
-       setFavorites(prev => {
-         const newFavs = new Set(prev);
-         newFavs.delete(propertyId);
-         return newFavs;
-       });
-    } catch(err) {
+      const { error } = await supabase
+        .from('favorites')
+        .delete()
+        .match({ user_id: sessionUser.id, property_id: propertyId });
+
+      if (error) throw error;
+
+      setFavorites(prev => {
+        const newFavs = new Set(prev);
+        newFavs.delete(propertyId);
+        return newFavs;
+      });
+    } catch (err) {
       console.error("Failed to remove favorite:", err);
       alert("Failed to remove favorite.");
     }
@@ -73,29 +75,52 @@ const MapPage = () => {
     fetchHouses();
   }, []);
 
-  const handleSearchSubmit = (filters) => {
+  const handleSearchSubmit = async (filters) => {
     setIsSidebarOpen(true);
     if (!filters) return;
-    const dest = (filters.destination || '').toLowerCase();
 
-    const results = houses.filter((h) => {
-      if (!h) return false;
-      const matchDest =
-        (h.name && h.name.toLowerCase().includes(dest)) ||
-        (h.address && h.address.toLowerCase().includes(dest)) ||
-        (h.neighborhood && h.neighborhood.toLowerCase().includes(dest)) ||
-        (h.description && h.description.toLowerCase().includes(dest));
-      let matchMin = true;
-      let matchMax = true;
-      const priceVal = parseFloat(h.price);
-      if (filters.minBudget && !isNaN(priceVal)) matchMin = priceVal >= parseFloat(filters.minBudget);
-      if (filters.maxBudget && !isNaN(priceVal)) matchMax = priceVal <= parseFloat(filters.maxBudget);
-      return matchDest && matchMin && matchMax;
-    });
-    setFilteredHouses(results);
+    const params = new URLSearchParams();
+    if (filters.destination) params.set('destination', filters.destination);
+    if (filters.minBudget) params.set('minBudget', filters.minBudget);
+    if (filters.maxBudget) params.set('maxBudget', filters.maxBudget);
+    const query = params.toString();
+
+    try {
+      const res = await fetch(`${API_BASE}/api/search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, user_id: sessionUser?.id }),
+      });
+
+      if (!res.ok) throw new Error(`Search failed: ${res.status}`);
+
+      const data = await res.json();
+
+      const mapped = (data.properties || []).map((p) => ({
+        id: p.place_id,
+        name: p.name,
+        price: p.min_price ?? p.max_price,
+        rating: p.google_rating,
+        description: p.summary,
+        address: p.address,
+        neighborhood: p.neighborhood,
+        city: p.city,
+        lat: p.lat,
+        lng: p.lng,
+        photos_urls: p.photos_urls,
+        amenities: p.amenities,
+        reasoning: p.reasoning,
+        fit_score: p.fit_score,
+      }));
+
+      setFilteredHouses(mapped);
+      setSelectedId(null);
+    } catch (err) {
+      console.error('Search API error:', err);
+    }
   };
 
-  const selectedHouse = houses.find(h => h.id === selectedId);
+  const selectedHouse = filteredHouses.find(h => h.id === selectedId) ?? houses.find(h => h.id === selectedId);
 
   const BurgerButton = !isSidebarOpen ? (
     <button
@@ -180,12 +205,12 @@ const MapPage = () => {
                           }}
                           title="Remove Favorite"
                         >
-                           <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="currentColor" strokeLinecap="round" strokeLinejoin="round">
-                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                           </svg>
+                          <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                          </svg>
                         </button>
                       )}
-                      
+
                       {/* Thumbnail */}
                       <motion.div
                         layoutId={`image-container-${house.id}`}
@@ -325,10 +350,10 @@ const MapPage = () => {
                   >
                     {selectedHouse.amenities && selectedHouse.amenities.length > 0
                       ? selectedHouse.amenities.map((amenity, i) => (
-                          <span key={i} style={{ backgroundColor: '#e9ecef', padding: '6px 10px', borderRadius: '6px', color: '#1a1a1a', fontWeight: 'bold' }}>
-                            {amenity.replace(/[{"}]/g, '').trim()}
-                          </span>
-                        ))
+                        <span key={i} style={{ backgroundColor: '#e9ecef', padding: '6px 10px', borderRadius: '6px', color: '#1a1a1a', fontWeight: 'bold' }}>
+                          {amenity.replace(/[{"}]/g, '').trim()}
+                        </span>
+                      ))
                       : <span style={{ fontStyle: 'italic' }}>No amenities listed</span>}
                   </motion.div>
                 </div>
@@ -372,11 +397,11 @@ const MapPage = () => {
         </div>
 
         <div style={{ padding: '0 20px 20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <MapComponent 
-            height="100%" 
-            houses={filteredHouses} 
-            selectedId={selectedId} 
-            onMarkerClick={setSelectedId} 
+          <MapComponent
+            height="100%"
+            houses={filteredHouses}
+            selectedId={selectedId}
+            onMarkerClick={setSelectedId}
           />
         </div>
       </div>
