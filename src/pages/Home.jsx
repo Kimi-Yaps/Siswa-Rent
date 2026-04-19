@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import HomeMobile from './HomeMobile';
 import gradientImg from '../assets/Gradient.svg';
@@ -51,6 +52,11 @@ const Home = () => {
               whileDrag={{ scale: 1.05, cursor: 'grabbing' }}
               style={{ cursor: 'grab' }}
             />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '40px', zIndex: 10, position: 'relative' }}>
+             <Link to="/map" style={{ padding: '16px 36px', backgroundColor: '#7D9E4E', color: 'white', borderRadius: '30px', textDecoration: 'none', fontSize: '18px', fontWeight: 'bold', boxShadow: '0 8px 20px rgba(125, 158, 78, 0.3)', transition: 'transform 0.2s' }}>
+               Start Searching →
+             </Link>
           </div>
         </div>
       </section>

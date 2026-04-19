@@ -47,8 +47,8 @@ const Navbar = () => {
       </div>
       <nav className="nav-main">
         <div className="nav-links">
-          <Link to="/housing">Housing</Link>
-          <Link to="/map">Map</Link>
+          <Link to="/map" style={{ fontWeight: 600 }}>Start Search</Link>
+          <Link to="/housing" style={{ opacity: 0.6, fontSize: '0.9em' }}>Browse</Link>
         </div>
         <div className="nav-logo">
           <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>Siswa Rent</Link>
