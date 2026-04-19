@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../components/supabaseClient';
+import CompareLocations from '../components/CompareLocations';
 import './HouseDetails.css';
 
 const getInitial = (name) => {
@@ -28,6 +29,9 @@ const HouseDetails = () => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [sessionUser, setSessionUser] = useState(null);
+  
+  const [isCompareOpen, setIsCompareOpen] = useState(false);
+  const [selectedComparison, setSelectedComparison] = useState(null);
 
   const [isMobile, setIsMobile] = useState(
     typeof window !== 'undefined' ? window.innerWidth <= 768 : false
@@ -136,6 +140,16 @@ const HouseDetails = () => {
     }
   };
 
+  const handleComparisonChange = (e) => {
+    const value = e.target.value;
+    if (value && property && property.latitude && property.longitude) {
+      setSelectedComparison(value);
+      setIsCompareOpen(true);
+    }
+    // Reset dropdown
+    e.target.value = '';
+  };
+
   // Barebones load state (just empty architecture rather than spinner)
   if (!property) {
     return (
@@ -210,6 +224,7 @@ const HouseDetails = () => {
               <div className="info-content expanded">
                 <p className="info-value">RM {getCompiledPrice(property)}</p>
                 <select
+                  onChange={handleComparisonChange}
                   defaultValue=""
                   className="compare-dropdown"
                 >
@@ -321,6 +336,17 @@ const HouseDetails = () => {
           </div>
         </div>
       </div>
+
+      <CompareLocations
+        isOpen={isCompareOpen}
+        onClose={() => {
+          setIsCompareOpen(false);
+          setSelectedComparison(null);
+        }}
+        propertyLocation={{ lat: parseFloat(property.latitude), lng: parseFloat(property.longitude) }}
+        propertyName={property.name}
+        comparisonType={selectedComparison}
+      />
     </main>
   );
 };
