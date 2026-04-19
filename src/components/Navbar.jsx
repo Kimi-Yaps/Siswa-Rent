@@ -1,40 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from './supabaseClient';
+import { useProfile } from '../context/ProfileContext';
 import './Navbar.css';
 
 const Navbar = () => {
   const [session, setSession] = useState(null);
-  const [avatarUrl, setAvatarUrl] = useState(null);
-  const [userName, setUserName] = useState('');
+  const { avatarUrl, userName, updateAvatar } = useProfile();
 
   useEffect(() => {
-    const fetchUserAvatar = async (userId) => {
-       try {
-         const { data } = await supabase.from('profiles').select('avatar_url, full_name').eq('id', userId).single();
-         if (data) {
-           if (data.avatar_url) {
-             setAvatarUrl(data.avatar_url);
-           } else {
-             setAvatarUrl(null);
-           }
-           setUserName(data.full_name || '');
-         }
-       } catch (e) {
-         console.error(e);
-         setUserName('');
-       }
-    };
-
-    // Robust session retrieval with try...catch for refresh exception handling
     const getSession = async () => {
       try {
         const { data, error } = await supabase.auth.getSession();
         if (error) throw error;
         setSession(data.session);
-        if (data.session) {
-           fetchUserAvatar(data.session.user.id);
-        }
       } catch (err) {
         console.error('Error restoring session:', err.message);
         setSession(null);
@@ -43,16 +22,9 @@ const Navbar = () => {
 
     getSession();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        if (session) fetchUserAvatar(session.user.id);
-        else {
-          setAvatarUrl(null);
-          setUserName('');
-        }
-      }
-    );
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
 
     return () => {
       authListener?.subscription.unsubscribe();
@@ -96,7 +68,7 @@ const Navbar = () => {
                     src={avatarUrl} 
                     alt="Profile" 
                     style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} 
-                    onError={() => setAvatarUrl(null)}
+                    onError={() => updateAvatar(null)}
                   />
                 ) : userName ? (
                   <div 
