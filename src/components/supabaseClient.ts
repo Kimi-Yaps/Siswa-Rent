@@ -5,8 +5,8 @@ let supabase: SupabaseClient | null = null;
 
 try {
   const env = (import.meta as any).env;
-  const supabaseUrl = 'https://ihbjltaimjoyidtwvhtq.supabase.co';
-  const supabaseAnonKey = 'sb_publishable_RXHk9OrOcoTcohLqmOPpIQ_cxxxGySn';
+  const supabaseUrl = env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error('Missing Supabase environment variables');
