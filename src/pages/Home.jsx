@@ -6,9 +6,9 @@ import orangeBgTextImg from '../assets/OrangeBgText.webp';
 import welcomeNoteImg from '../assets/WelcomeNote.webp';
 
 const faqs = [
-  { question: 'What Is QuerySaja?', answer: 'QuerySaja is a modern platform to help you find your perfect personal space and beyond.' },
+  { question: 'What Is Siswa Rent ', answer: 'Siswa Rent is a modern platform to help you find your perfect personal space and beyond.' },
   { question: 'How Do I Find My Perfect House?', answer: 'Simply enter your desired destination in the search bar and compare prices, distances, and reviews to find your match.' },
-  { question: 'Who Is QuerySaja Targeted Towards?', answer: 'We primarily focus on students and renters looking for affordable, reliable housing options near campuses or cities.' }
+  { question: 'Who Is Siswa Rent Targeted Towards?', answer: 'We primarily focus on students and renters looking for affordable, reliable housing options near campuses or cities.' }
 ];
 
 const Home = () => {

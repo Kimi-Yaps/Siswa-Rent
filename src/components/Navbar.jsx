@@ -51,7 +51,7 @@ const Navbar = () => {
           <Link to="/map">Map</Link>
         </div>
         <div className="nav-logo">
-          <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>QuerySaja</Link>
+          <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>Siswa Rent</Link>
         </div>
         <div className="nav-actions">
           {session ? (
