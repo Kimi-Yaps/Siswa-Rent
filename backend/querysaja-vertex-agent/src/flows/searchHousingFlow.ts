@@ -3,7 +3,6 @@ import { z } from 'zod';
 import { parseIntent } from './parseIntent';
 import { searchPlaces } from '../tools/places';
 import { attachPricingAndFilter } from '../tools/pricing';
-import { calculateDistance } from '../lib/geo';
 
 // Local schema for AI reasoning output
 const rankingSchema = z.array(z.object({
@@ -23,7 +22,9 @@ export const searchHousingFlow = ai.defineFlow(
         // 1. Existing pipeline (Intent -> Search -> Proximity -> Budget)
         const intent = await parseIntent(query);
         const rawPlaces = await searchPlaces(intent);
-        const nearby = rawPlaces.filter(p => calculateDistance(1.559, 103.637, p.lat, p.lng) <= 15);
+        // Places API locationRestriction already enforces a 15 km radius around
+        // UTM Johor server-side. Just guard against places with missing coordinates.
+        const nearby = rawPlaces.filter(p => p.lat != null && p.lng != null);
         const results = await attachPricingAndFilter(nearby, intent);
 
         // 2. AI Reasoning Layer (Shortlist only, Response-only)
@@ -46,7 +47,7 @@ export const searchHousingFlow = ai.defineFlow(
               place_id: r.place_id || r.id,
               name: r.name,
               address: r.address,
-              neighborhood: r.market_zone || 'Skudai',
+              neighborhood: r.market_zone || 'Johor Bahru',
               latitude: r.lat,
               longitude: r.lng,
               min_price: r.estimated_price ?? null,
@@ -55,8 +56,8 @@ export const searchHousingFlow = ai.defineFlow(
               google_rating: r.google_rating ?? null,
               source: 'google_places',
               fit_score: aiInfo?.fit_score || 7.0,
-              summary: aiInfo?.summary || 'Good match near UTM',
-              reasoning: aiInfo?.reasoning || ['Within budget', 'Near campus']
+              summary: aiInfo?.summary || 'Good match for students',
+              reasoning: aiInfo?.reasoning || ['Within budget', 'Near campus area']
             };
           });
 

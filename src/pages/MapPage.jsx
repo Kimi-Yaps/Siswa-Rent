@@ -8,10 +8,13 @@ import './MapPage.css';
 const API_BASE = 'http://localhost:3400';
 
 const MapPage = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => JSON.parse(sessionStorage.getItem('map_isSidebarOpen')) ?? false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState(null);
+  const [lastQuery, setLastQuery] = useState(() => sessionStorage.getItem('map_lastQuery') || '');
+  const [selectedId, setSelectedId] = useState(() => sessionStorage.getItem('map_selectedId') || null);
   const [houses, setHouses] = useState([]);
-  const [filteredHouses, setFilteredHouses] = useState([]);
+  const [filteredHouses, setFilteredHouses] = useState(() => JSON.parse(sessionStorage.getItem('map_filteredHouses')) || []);
   const [favorites, setFavorites] = useState(new Set());
   const [sessionUser, setSessionUser] = useState(null);
 
@@ -24,7 +27,11 @@ const MapPage = () => {
       if (error) throw error;
 
       setHouses(data || []);
-      setFilteredHouses(data || []);
+      
+      // Only reset the map to default houses if we don't have an active search in session
+      if (!sessionStorage.getItem('map_lastQuery')) {
+        setFilteredHouses(data || []);
+      }
 
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -75,23 +82,49 @@ const MapPage = () => {
     fetchHouses();
   }, []);
 
+  // Autosave map state to session storage when navigating away / interacting
+  useEffect(() => {
+    sessionStorage.setItem('map_isSidebarOpen', JSON.stringify(isSidebarOpen));
+    sessionStorage.setItem('map_lastQuery', lastQuery);
+    sessionStorage.setItem('map_filteredHouses', JSON.stringify(filteredHouses));
+    if (selectedId) sessionStorage.setItem('map_selectedId', selectedId);
+    else sessionStorage.removeItem('map_selectedId');
+  }, [isSidebarOpen, lastQuery, filteredHouses, selectedId]);
+
   const handleSearchSubmit = async (filters) => {
+    console.log('[handleSearchSubmit] blocked?', { isSearching, filters });
+    if (isSearching) return;
     setIsSidebarOpen(true);
     if (!filters) return;
 
-    const params = new URLSearchParams();
-    if (filters.destination) params.set('destination', filters.destination);
-    if (filters.minBudget) params.set('minBudget', filters.minBudget);
-    if (filters.maxBudget) params.set('maxBudget', filters.maxBudget);
-    const query = params.toString();
+    // Build natural-language query
+    let query = filters.destination?.trim() || '';
 
+    // Guard: only append budget phrasing if the destination string doesn't
+    // already contain it (prevents double-appending on re-submit).
+    const alreadyHasBudget = /\b(bawah|atas|antara)\s+RM/i.test(query);
+    if (!alreadyHasBudget && filters.minBudget && filters.maxBudget) {
+      query += ` antara RM${filters.minBudget} hingga RM${filters.maxBudget}`;
+    } else if (!alreadyHasBudget && filters.maxBudget) {
+      query += ` bawah RM${filters.maxBudget}`;
+    } else if (!alreadyHasBudget && filters.minBudget) {
+      query += ` atas RM${filters.minBudget}`;
+    }
+    query = query.trim();
+    if (!query) return;
+
+    setSearchError(null);
+    setLastQuery(query);
+    setIsSearching(true);
     try {
+      console.log('[handleSearchSubmit] POSTing payload:', { query, user_id: sessionUser?.id });
       const res = await fetch(`${API_BASE}/api/search`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query, user_id: sessionUser?.id }),
       });
 
+      console.log('[handleSearchSubmit] response status:', res.status);
       if (!res.ok) throw new Error(`Search failed: ${res.status}`);
 
       const data = await res.json();
@@ -105,8 +138,8 @@ const MapPage = () => {
         address: p.address,
         neighborhood: p.neighborhood,
         city: p.city,
-        lat: p.lat,
-        lng: p.lng,
+        lat: p.latitude ?? p.lat,
+        lng: p.longitude ?? p.lng,
         photos_urls: p.photos_urls,
         amenities: p.amenities,
         reasoning: p.reasoning,
@@ -116,7 +149,10 @@ const MapPage = () => {
       setFilteredHouses(mapped);
       setSelectedId(null);
     } catch (err) {
-      console.error('Search API error:', err);
+      console.error('[handleSearchSubmit] fetch error:', err);
+      setSearchError('Search failed. Please try again.');
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -151,13 +187,42 @@ const MapPage = () => {
                 exit={{ opacity: 0 }}
                 style={{ position: 'absolute', width: '100%', height: '100%', padding: '40px 20px', overflowY: 'auto', boxSizing: 'border-box' }}
               >
+                {/* Sidebar header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                  <h2 style={{ margin: 0, fontFamily: 'Recia, serif', fontSize: '24px', color: '#1a1a1a' }}>Destinations</h2>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <h2 style={{ margin: 0, fontFamily: 'Recia, serif', fontSize: '24px', color: '#1a1a1a' }}>
+                      {lastQuery ? 'Top picks' : 'Destinations'}
+                    </h2>
+                    {lastQuery && !isSearching && filteredHouses.length > 0 && (
+                      <span style={{
+                        fontSize: '11px', fontFamily: 'Arial, sans-serif', fontWeight: 700,
+                        background: '#eaf2d7', color: '#5a7a2e',
+                        padding: '2px 8px', borderRadius: '99px'
+                      }}>
+                        {filteredHouses.length} result{filteredHouses.length !== 1 ? 's' : ''}
+                      </span>
+                    )}
+                  </div>
                   <button onClick={() => setIsSidebarOpen(false)} style={{ background: 'none', border: 'none', fontSize: '28px', color: '#1a1a1a', cursor: 'pointer', padding: 0, lineHeight: 1 }}>&times;</button>
                 </div>
 
+                {/* Loading overlay */}
+                {isSearching && (
+                  <div style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    padding: '60px 20px', gap: '14px'
+                  }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#7D9E4E" strokeWidth="2.5" strokeLinecap="round"
+                      style={{ width: '36px', height: '36px', animation: 'sb-spin 0.9s linear infinite' }}>
+                      <circle cx="12" cy="12" r="9" strokeOpacity="0.2" />
+                      <path d="M12 3 a9 9 0 0 1 9 9" />
+                    </svg>
+                    <p style={{ fontFamily: 'Arial, sans-serif', fontSize: '13px', color: '#888', margin: 0 }}>Finding best matches…</p>
+                  </div>
+                )}
+
                 <div style={{ display: 'flex', flexDirection: 'column', marginTop: '40px' }}>
-                  {filteredHouses.length > 0 ? filteredHouses.map((house, index) => (
+                  {!isSearching && (filteredHouses.length > 0 ? filteredHouses.map((house, index) => (
                     <motion.div
                       key={house.id}
                       layoutId={`card-container-${house.id}`}
@@ -171,12 +236,12 @@ const MapPage = () => {
                         zIndex: filteredHouses.length - index,
                         marginBottom: '15px',
                         width: '100%',
-                        height: '110px',
+                        minHeight: '110px',
                         backgroundColor: '#fff',
                         borderRadius: '16px',
                         boxShadow: '0 6px 15px rgba(0,0,0,0.1)',
                         display: 'flex',
-                        alignItems: 'center',
+                        alignItems: 'flex-start',
                         padding: '12px',
                         boxSizing: 'border-box',
                         cursor: 'pointer',
@@ -214,8 +279,18 @@ const MapPage = () => {
                       {/* Thumbnail */}
                       <motion.div
                         layoutId={`image-container-${house.id}`}
-                        style={{ width: '86px', height: '86px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0, backgroundColor: '#ececec' }}
+                        style={{ width: '86px', height: '86px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0, position: 'relative' }}
                       >
+                        {/* Number Badge */}
+                        <div style={{
+                          position: 'absolute', top: '4px', left: '4px',
+                          background: 'rgba(0,0,0,0.65)', color: '#fff',
+                          width: '18px', height: '18px', borderRadius: '50%',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: '10px', fontWeight: 'bold', zIndex: 10
+                        }}>
+                          {index + 1}
+                        </div>
                         {(house.photos_urls && house.photos_urls.length > 0) ? (
                           <>
                             <motion.img
@@ -229,31 +304,91 @@ const MapPage = () => {
                                 } catch (err) { console.error(err); }
                               }}
                             />
-                            <div className="empty-image-placeholder error-fallback" style={{ display: 'none', width: '100%', height: '100%', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '12px', textAlign: 'center', padding: '5px' }}>
-                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '4px' }}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                              No Image
+                            <div style={{
+                              display: 'none', width: '100%', height: '100%',
+                              background: 'linear-gradient(135deg,#e8f0db 0%,#c9d9a8 100%)',
+                              alignItems: 'center', justifyContent: 'center', borderRadius: '10px'
+                            }}>
+                              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7D9E4E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
+                                <path d="M9 21V12h6v9" />
+                              </svg>
                             </div>
                           </>
                         ) : (
-                          <div className="empty-image-placeholder" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '12px', textAlign: 'center', padding: '5px' }}>
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '4px' }}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                            No Image
+                          <div style={{
+                            width: '100%', height: '100%',
+                            background: 'linear-gradient(135deg,#e8f0db 0%,#c9d9a8 100%)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '10px'
+                          }}>
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7D9E4E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
+                              <path d="M9 21V12h6v9" />
+                            </svg>
                           </div>
                         )}
                       </motion.div>
 
-                      {/* ✅ FIX: restored missing wrapper div for text content */}
-                      <div style={{ marginLeft: '16px', flex: 1, overflow: 'hidden' }}>
-                        <motion.h4 layoutId={`title-${house.id}`} style={{ margin: '0 0 6px 0', fontFamily: 'Recia, serif', fontSize: '18px', color: '#1a1a1a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{house.name}</motion.h4>
-                        <motion.p layoutId={`price-${house.id}`} style={{ margin: 0, fontFamily: 'Recia, serif', fontSize: '13px', color: '#4a4a4a' }}>RM{house.price}</motion.p>
-                        <motion.p layoutId={`dist-${house.id}`} style={{ margin: '4px 0 0 0', fontFamily: 'Arial, sans-serif', fontSize: '11px', color: '#888' }}>
+                      {/* Text content */}
+                      <div style={{ marginLeft: '12px', flex: 1, overflow: 'hidden', paddingTop: '2px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                          <motion.h4 layoutId={`title-${house.id}`} style={{ margin: 0, fontFamily: 'Recia, serif', fontSize: '15px', color: '#1a1a1a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '130px' }}>{house.name}</motion.h4>
+                          {house.fit_score != null && (() => {
+                            let label = 'Good fit';
+                            let bg = '#f0ede0';
+                            let fg = '#888';
+                            if (index === 0) {
+                              label = 'Top pick';
+                              bg = '#7D9E4E';
+                              fg = '#fff';
+                            } else if (index <= 2) {
+                              label = 'Strong match';
+                              bg = '#eaf2d7';
+                              fg = '#5a7a2e';
+                            }
+                            return (
+                              <span style={{
+                                fontSize: '10px', padding: '2px 8px', borderRadius: '99px',
+                                background: bg, color: fg, fontWeight: 700,
+                                flexShrink: 0, whiteSpace: 'nowrap'
+                              }}>
+                                {label}
+                              </span>
+                            );
+                          })()}
+                        </div>
+                        <motion.p layoutId={`price-${house.id}`} style={{ margin: '0 0 2px', fontFamily: 'Recia, serif', fontSize: '13px', color: '#4a4a4a' }}>RM{house.price}</motion.p>
+                        <motion.p layoutId={`dist-${house.id}`} style={{ margin: '0 0 4px', fontFamily: 'Arial, sans-serif', fontSize: '11px', color: '#888' }}>
                           {house.neighborhood || house.city || 'Unknown Location'}
                         </motion.p>
+                        {house.description && (
+                          <p style={{
+                            margin: 0, fontSize: '10px', color: '#666', fontFamily: 'Arial, sans-serif',
+                            overflow: 'hidden', display: '-webkit-box',
+                            WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: '1.4'
+                          }}>
+                            {house.description}
+                          </p>
+                        )}
                       </div>
                     </motion.div>
                   )) : (
-                    <p style={{ fontFamily: 'Arial, sans-serif', fontSize: '13px', color: '#888', textAlign: 'center', marginTop: '40px' }}>No results found.</p>
-                  )}
+                    <div style={{ textAlign: 'center', marginTop: '40px', padding: '0 10px' }}>
+                      {searchError ? (
+                        <>
+                          <p style={{ fontFamily: 'Arial, sans-serif', fontSize: '13px', color: '#c0392b', marginBottom: '8px' }}>⚠ {searchError}</p>
+                          <p style={{ fontFamily: 'Arial, sans-serif', fontSize: '12px', color: '#aaa' }}>Check your connection and try again.</p>
+                        </>
+                      ) : lastQuery ? (
+                        <>
+                          <p style={{ fontFamily: 'Arial, sans-serif', fontSize: '13px', color: '#888', marginBottom: '4px' }}>No properties matched your search.</p>
+                          <p style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: '#aaa' }}>Try a different area or adjust your budget.</p>
+                        </>
+                      ) : (
+                        <p style={{ fontFamily: 'Arial, sans-serif', fontSize: '13px', color: '#aaa' }}>Search above to find properties.</p>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </motion.div>
             ) : selectedHouse ? (
@@ -293,6 +428,19 @@ const MapPage = () => {
                   layoutId={`image-container-${selectedHouse.id}`}
                   style={{ position: 'relative', width: '100%', aspectRatio: '1/1', borderRadius: '16px', overflow: 'hidden', marginBottom: '20px', backgroundColor: '#ececec' }}
                 >
+                  {/* Match the bright blue map marker */}
+                  {filteredHouses.findIndex(h => h.id === selectedHouse.id) !== -1 && (
+                    <div style={{
+                      position: 'absolute', top: '16px', right: '16px',
+                      background: '#4285F4', color: '#fff',
+                      width: '32px', height: '32px', borderRadius: '50%',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '16px', fontWeight: 'bold', zIndex: 10,
+                      boxShadow: '0 4px 12px rgba(66, 133, 244, 0.4)'
+                    }}>
+                      {filteredHouses.findIndex(h => h.id === selectedHouse.id) + 1}
+                    </div>
+                  )}
                   {(selectedHouse.photos_urls && selectedHouse.photos_urls.length > 0) ? (
                     <>
                       <motion.img
@@ -307,15 +455,27 @@ const MapPage = () => {
                           } catch (err) { console.error(err); }
                         }}
                       />
-                      <div className="empty-image-placeholder error-fallback" style={{ display: 'none', width: '100%', height: '100%', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '16px' }}>
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '10px' }}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                        No Image Available
+                      <div style={{
+                        display: 'none', width: '100%', height: '100%',
+                        background: 'linear-gradient(135deg,#e8f0db 0%,#c9d9a8 100%)',
+                        alignItems: 'center', justifyContent: 'center'
+                      }}>
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#7D9E4E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
+                          <path d="M9 21V12h6v9" />
+                        </svg>
                       </div>
                     </>
                   ) : (
-                    <div className="empty-image-placeholder" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '16px', flexDirection: 'column' }}>
-                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '10px' }}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                      No Image Available
+                    <div style={{
+                      width: '100%', height: '100%',
+                      background: 'linear-gradient(135deg,#e8f0db 0%,#c9d9a8 100%)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#7D9E4E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
+                        <path d="M9 21V12h6v9" />
+                      </svg>
                     </div>
                   )}
                 </motion.div>
@@ -392,7 +552,12 @@ const MapPage = () => {
             {BurgerButton}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <SearchBar onSubmit={handleSearchSubmit} />
+            <SearchBar
+                onSubmit={handleSearchSubmit}
+                isSearching={isSearching}
+                lastResultCount={lastQuery && !isSearching ? filteredHouses.length : null}
+                lastQueryLabel={lastQuery && !isSearching ? lastQuery : null}
+              />
           </div>
         </div>
 

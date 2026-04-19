@@ -19,10 +19,16 @@
   width: 100%;
   display: flex;
   align-items: center;
-  background-color: #f0ede0;
-  border-radius: 12px;
-  padding: 18px 24px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  background-color: #ffffff;
+  border: 1.5px solid #eae8d9;
+  border-radius: 20px;
+  padding: 12px 16px 12px 24px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.03);
+  transition: all 0.25s ease;
+}
+.search-bar:focus-within {
+  border-color: #d1cca8;
+  box-shadow: 0 8px 24px rgba(125, 158, 78, 0.08);
 }
 
 .search-icon-l {
@@ -30,6 +36,108 @@
   height: 24px;
   color: #888;
   margin-right: 15px;
+  flex-shrink: 0;
+}
+
+/* Clickable search button wrapper */
+.search-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #7D9E4E;
+  border: none;
+  padding: 8px;
+  margin-right: 0;
+  margin-left: 10px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+  flex-shrink: 0;
+  color: #fff;
+}
+.search-btn:hover {
+  background-color: #6a8840;
+}
+.search-btn:active {
+  transform: scale(0.92);
+}
+.search-btn .search-icon-l {
+  margin: 0;
+  color: #fff;
+  width: 18px;
+  height: 18px;
+}
+
+/* Loading state modifier on the bar */
+.search-bar--loading {
+  transition: opacity 0.2s ease;
+}
+
+/* Post-search / in-progress status line */
+.search-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 0 4px;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  transition: opacity 0.2s;
+}
+.search-status--searching {
+  color: #999;
+  font-style: italic;
+}
+.search-status--done {
+  color: #5a7a2e;
+  font-weight: 600;
+}
+.search-status__query {
+  font-weight: 400;
+  color: #777;
+}
+
+/* Helper hint */
+.search-hint {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  color: #aaa;
+  font-style: italic;
+  text-align: center;
+}
+
+/* Budget section */
+.budget-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.budget-labels-row {
+  display: flex;
+  gap: 15px;
+  width: 100%;
+}
+.budget-label {
+  flex: 1;
+  font-family: Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #8c8c7d;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0 8px;
+}
+.budget-hint {
+  text-align: left;
+  padding: 0 4px;
+}
+.scope-hint {
+  text-align: left;
+  padding: 0 4px;
+  color: #8a8a7a;
+  font-style: normal;
 }
 
 .search-bar input {
@@ -61,7 +169,7 @@
   color: #1a1a1a;
   font-family: inherit;
   font-size: inherit;
-  padding: 16px 20px;
+  padding: 0;
   cursor: text;
 }
 
@@ -71,18 +179,21 @@
 
 .filter-item {
   flex: 1;
-  background-color: #f0ede0;
-  padding: 16px 20px;
-  border-radius: 12px;
+  background-color: #ffffff;
+  border: 1.5px solid #eae8d9;
+  padding: 14px 18px;
+  border-radius: 14px;
   font-family: 'Recia', serif;
   font-size: 14px;
   color: #888;
-  cursor: pointer;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  cursor: text;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
 }
 
-.filter-item:hover {
-  background-color: #fff;
+.filter-item:focus-within {
+  border-color: #d1cca8;
+  box-shadow: 0 6px 16px rgba(125, 158, 78, 0.06);
 }
 
 /* Mobile Responsiveness */
@@ -90,11 +201,11 @@
   .search-header {
     padding: 30px 15px;
   }
-  
+
   .search-bar {
     padding: 12px 16px;
   }
-  
+
   .search-bar input {
     font-size: 14px;
   }
@@ -108,13 +219,13 @@
     height: 18px;
     margin-right: 10px;
   }
-  
+
   .filters-row {
     flex-direction: row;
     flex-wrap: wrap;
     gap: 10px;
   }
-  
+
   .filter-item {
     width: auto;
     flex: 1;
@@ -140,7 +251,7 @@
   margin-top: 5px;
   background-color: #fff;
   border-radius: 12px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -165,4 +276,14 @@
 
 .rec-item:hover {
   background-color: #f0ede0;
+}
+
+@keyframes sb-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }

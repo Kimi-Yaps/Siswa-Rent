@@ -56,27 +56,34 @@ const MapComponent = ({ height = '85vh', houses = [], selectedId = null, onMarke
     const bounds = new window.google.maps.LatLngBounds();
     let hasValidMarkers = false;
 
-    houses.forEach((house) => {
-      if (typeof house.latitude === 'number' && typeof house.longitude === 'number') {
-        const position = { lat: house.latitude, lng: house.longitude };
+    houses.forEach((house, index) => {
+      const hLat = house.lat !== undefined ? house.lat : house.latitude;
+      const hLng = house.lng !== undefined ? house.lng : house.longitude;
+      
+      if (hLat != null && hLng != null) {
+        const position = { lat: Number(hLat), lng: Number(hLng) };
         const isSelected = house.id === selectedId;
 
         const marker = new window.google.maps.Marker({
           position,
           map,
           title: house.name,
-          animation: isSelected ? window.google.maps.Animation.BOUNCE : null,
-          icon: isSelected 
-             ? 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' 
-             : 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+          label: {
+            text: String(index + 1),
+            color: 'white',
+            fontSize: isSelected ? '14px' : '11px',
+            fontWeight: 'bold'
+          },
+          animation: null,
+          icon: {
+            path: window.google.maps.SymbolPath.CIRCLE,
+            fillColor: isSelected ? '#4285F4' : '#7D9E4E',
+            fillOpacity: 1,
+            strokeColor: 'white',
+            strokeWeight: isSelected ? 3 : 2,
+            scale: isSelected ? 16 : 12
+          }
         });
-
-        if (isSelected) {
-          // Stop bouncing after 3 seconds so it's not annoying
-          setTimeout(() => {
-             if (marker.getMap()) marker.setAnimation(null);
-          }, 3000);
-        }
 
         marker.addListener('click', () => {
           onMarkerClick(house.id);
@@ -93,9 +100,15 @@ const MapComponent = ({ height = '85vh', houses = [], selectedId = null, onMarke
          // If there's only one marker or a selected one, we center and optionally adjust zoom
          const targetId = selectedId || houses[0].id;
          const targetHouse = houses.find(h => h.id === targetId);
-         if (targetHouse && typeof targetHouse.latitude === 'number') {
-            map.setCenter({ lat: targetHouse.latitude, lng: targetHouse.longitude });
-            map.setZoom(14);
+         if (targetHouse) {
+            const tLat = targetHouse.lat !== undefined ? targetHouse.lat : targetHouse.latitude;
+            const tLng = targetHouse.lng !== undefined ? targetHouse.lng : targetHouse.longitude;
+            if (tLat != null && tLng != null) {
+               map.setCenter({ lat: Number(tLat), lng: Number(tLng) });
+               map.setZoom(14);
+            } else {
+               map.fitBounds(bounds);
+            }
          } else {
             map.fitBounds(bounds);
          }

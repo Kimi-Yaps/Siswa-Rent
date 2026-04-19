@@ -4,15 +4,12 @@ export async function searchPlaces(intent: any) {
   const key = process.env.PLACES_API_KEY;
   const url = 'https://places.googleapis.com/v1/places:searchText';
 
-  const baseLocation = intent.location || 'UTM Skudai';
 
   const queries = [
-    `apartment near ${baseLocation} Johor`,
-    `room rental near ${baseLocation} Skudai`,
-    `student hostel near ${baseLocation}`,
-    `room for rent Skudai`,
+    `apartment near UTM Johor`,
+    `room rental near Skudai Johor`,
+    `student accommodation near UTM Johor Bahru`,
     `rumah sewa Skudai`,
-    `Taman Universiti Skudai`,
   ];
 
   const headers = {

@@ -59,7 +59,7 @@ const HouseDetails = () => {
         const { data, error } = await supabase
           .from('properties')
           .select('*')
-          .eq('id', id)
+          .eq('place_id', id)
           .single();
           
         if (error) throw error;
