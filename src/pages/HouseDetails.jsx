@@ -68,6 +68,11 @@ const HouseDetails = () => {
   const [reviewText, setReviewText] = useState('');
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
 
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [ratingValue, setRatingValue] = useState(0);
+  const [ratingHover, setRatingHover] = useState(0);
+  const [ratingSubmitting, setRatingSubmitting] = useState(false);
+
   const [validStreetView, setValidStreetView] = useState(null); // null = checking, true/false = result
 
   const [isMobile, setIsMobile] = useState(
@@ -237,6 +242,36 @@ const HouseDetails = () => {
       alert('Failed to submit review.');
     } finally {
       setReviewSubmitting(false);
+    }
+  };
+
+  const handleSubmitRating = async () => {
+    if (!ratingValue) return;
+    if (!sessionUser) {
+      alert('Please sign in to add a rating.');
+      return;
+    }
+    setRatingSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('properties')
+        .update({ user_rating: ratingValue.toFixed(2) })
+        .eq('id', property.id);
+
+      if (error) {
+        console.error('Rating update error:', error);
+        alert(`Could not save rating: ${error.message || error.code || 'Unknown error'}`);
+      } else {
+        setProperty(prev => ({ ...prev, user_rating: ratingValue.toFixed(2) }));
+        setRatingValue(0);
+        setShowRatingModal(false);
+        alert('Rating submitted!');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to submit rating.');
+    } finally {
+      setRatingSubmitting(false);
     }
   };
 
@@ -431,8 +466,42 @@ const HouseDetails = () => {
                 <span className="info-label">Rating</span>
               </div>
               <div className="info-content expanded">
-                <div className="rating-stars">
-                  ★ {property.google_rating ? property.google_rating : "No Rating"}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                  <div className="rating-stars">
+                    ★{' '}
+                    {(() => {
+                      const r = property.user_rating || property.google_rating;
+                      return r ? parseFloat(r).toFixed(2) : 'No Rating';
+                    })()}
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (!sessionUser) {
+                        alert('Please sign in to add a rating.');
+                      } else {
+                        setRatingValue(0);
+                        setRatingHover(0);
+                        setShowRatingModal(true);
+                      }
+                    }}
+                    style={{
+                      padding: '6px 14px',
+                      backgroundColor: 'transparent',
+                      color: '#FFB400',
+                      border: '1.5px solid #FFB400',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '13px',
+                      fontFamily: 'Recia, serif',
+                      fontWeight: 'bold',
+                      whiteSpace: 'nowrap',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#FFB400'; e.currentTarget.style.color = '#fff'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#FFB400'; }}
+                  >
+                    + Add Rating
+                  </button>
                 </div>
               </div>
             </div>
@@ -502,6 +571,93 @@ const HouseDetails = () => {
             </div>
           </div>
         </div>
+
+        {/* Rating Modal */}
+        {showRatingModal && (
+          <div
+            onClick={() => setShowRatingModal(false)}
+            style={{
+              position: 'fixed', inset: 0,
+              background: 'rgba(0,0,0,0.45)',
+              backdropFilter: 'blur(4px)',
+              zIndex: 1000,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: '20px',
+            }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: '#f4f1eb',
+                borderRadius: '16px',
+                padding: '32px',
+                width: '100%',
+                maxWidth: '400px',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+                textAlign: 'center',
+              }}
+            >
+              <h2 style={{ margin: '0 0 6px', fontFamily: 'Recia, serif', fontSize: '22px', color: '#1a1a1a' }}>Rate this Property</h2>
+              <p style={{ margin: '0 0 24px', fontFamily: 'Arial, sans-serif', fontSize: '13px', color: '#888' }}>
+                {property.name}
+              </p>
+
+              {/* Star selector */}
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '10px' }}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <span
+                    key={star}
+                    onClick={() => setRatingValue(star)}
+                    onMouseEnter={() => setRatingHover(star)}
+                    onMouseLeave={() => setRatingHover(0)}
+                    style={{
+                      fontSize: '42px',
+                      cursor: 'pointer',
+                      color: star <= (ratingHover || ratingValue) ? '#FFB400' : '#ddd',
+                      transition: 'color 0.15s, transform 0.1s',
+                      transform: star <= (ratingHover || ratingValue) ? 'scale(1.15)' : 'scale(1)',
+                      display: 'inline-block',
+                      lineHeight: 1,
+                    }}
+                  >
+                    ★
+                  </span>
+                ))}
+              </div>
+
+              <p style={{ fontFamily: 'Arial, sans-serif', fontSize: '13px', color: '#aaa', margin: '0 0 24px' }}>
+                {ratingValue > 0 ? `Your rating: ${ratingValue}.00 / 5.00` : 'Tap a star to rate'}
+              </p>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={() => { setShowRatingModal(false); setRatingValue(0); }}
+                  style={{
+                    flex: 1, padding: '12px', background: 'transparent',
+                    border: '1.5px solid #ccc', borderRadius: '8px',
+                    cursor: 'pointer', fontFamily: 'Recia, serif', fontSize: '14px', color: '#666',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmitRating}
+                  disabled={ratingSubmitting || !ratingValue}
+                  style={{
+                    flex: 1, padding: '12px',
+                    background: ratingValue ? '#FFB400' : '#ccc',
+                    color: '#fff', border: 'none', borderRadius: '8px',
+                    cursor: ratingValue && !ratingSubmitting ? 'pointer' : 'not-allowed',
+                    fontFamily: 'Recia, serif', fontSize: '14px', fontWeight: 'bold',
+                    transition: 'background 0.2s',
+                  }}
+                >
+                  {ratingSubmitting ? 'Submitting…' : 'Submit Rating'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Review Modal */}
         {showReviewModal && (
