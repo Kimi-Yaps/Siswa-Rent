@@ -3,6 +3,104 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "../components/supabaseClient";
 import "./Favorites.css";
 
+const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_JAVASCRIPT_MAP_API;
+
+const getStreetViewUrl = (property) => {
+  const lat = property.latitude ?? property.lat;
+  const lng = property.longitude ?? property.lng;
+  if (!lat || !lng) return null;
+  return `https://maps.googleapis.com/maps/api/streetview?size=600x400&location=${lat},${lng}&fov=80&pitch=0&radius=25&source=outdoor&key=${MAPS_API_KEY}`;
+};
+
+const getStaticMapUrl = (property) => {
+  const lat = property.latitude ?? property.lat;
+  const lng = property.longitude ?? property.lng;
+  if (!lat || !lng) return null;
+  return `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=17&size=600x400&maptype=roadmap&markers=color:0x7D9E4E%7C${lat},${lng}&key=${MAPS_API_KEY}`;
+};
+
+const checkStreetViewExists = async (property) => {
+  const lat = property.latitude ?? property.lat;
+  const lng = property.longitude ?? property.lng;
+  if (!lat || !lng) return false;
+  try {
+    const res = await fetch(
+      `https://maps.googleapis.com/maps/api/streetview/metadata?location=${lat},${lng}&radius=25&source=outdoor&key=${MAPS_API_KEY}`
+    );
+    const data = await res.json();
+    return data.status === 'OK';
+  } catch {
+    return false;
+  }
+};
+
+const getCompiledPrice = (property) => {
+  if (property.price_avg) return `RM ${parseFloat(property.price_avg).toLocaleString()}`;
+  if (property.price_min && property.price_max) {
+    return `RM ${parseFloat(property.price_min).toLocaleString()} – RM ${parseFloat(property.price_max).toLocaleString()}`;
+  }
+  if (property.price_min) return `RM ${parseFloat(property.price_min).toLocaleString()}`;
+  if (property.price_max) return `RM ${parseFloat(property.price_max).toLocaleString()}`;
+  if (property.price) return `RM ${parseFloat(property.price).toLocaleString()}`;
+  return 'Price N/A';
+};
+
+// Per-card image component with Street View / Static Map fallback
+const FavoriteImage = ({ property }) => {
+  const hasPhotos = property.photos_urls && property.photos_urls.length > 0;
+  const [imgSrc, setImgSrc] = useState(hasPhotos ? property.photos_urls[0] : null);
+  const [fallbackChecked, setFallbackChecked] = useState(hasPhotos);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    if (hasPhotos || fallbackChecked) return;
+    // No photos — check Street View then fall back to Static Map
+    checkStreetViewExists(property).then(exists => {
+      if (exists) {
+        setImgSrc(getStreetViewUrl(property));
+      } else {
+        const smUrl = getStaticMapUrl(property);
+        setImgSrc(smUrl); // null if no coords either
+      }
+      setFallbackChecked(true);
+    });
+  }, [property.id]);
+
+  const handleError = () => {
+    // Photo URL broke — try Street View
+    const svUrl = getStreetViewUrl(property);
+    if (svUrl && imgSrc !== svUrl) {
+      setImgSrc(svUrl);
+      return;
+    }
+    // Street View failed — try Static Map
+    const smUrl = getStaticMapUrl(property);
+    if (smUrl && imgSrc !== smUrl) {
+      setImgSrc(smUrl);
+      return;
+    }
+    setFailed(true);
+  };
+
+  if (failed || (!imgSrc && fallbackChecked)) {
+    return <div className="favorite-image-placeholder">No Image</div>;
+  }
+
+  if (!imgSrc) {
+    // Still checking street view
+    return <div className="favorite-image-placeholder" style={{ color: '#ccc', fontSize: '12px' }}>Loading…</div>;
+  }
+
+  return (
+    <img
+      src={imgSrc}
+      alt={property.name}
+      className="favorite-image"
+      onError={handleError}
+    />
+  );
+};
+
 const Favorites = () => {
   const navigate = useNavigate();
   const [favorites, setFavorites] = useState([]);
@@ -33,7 +131,16 @@ const Favorites = () => {
             properties (
               id,
               name,
-              price
+              price,
+              price_avg,
+              price_min,
+              price_max,
+              address,
+              neighborhood,
+              city,
+              latitude,
+              longitude,
+              photos_urls
             )
           `)
           .eq("user_id", session.user.id)
@@ -116,10 +223,11 @@ const Favorites = () => {
               const property = fav.properties;
               if (!property) return null;
 
-              const coverImage =
-                property.image_urls && property.image_urls.length > 0
-                  ? property.image_urls[0]
-                  : null;
+              const location =
+                property.address ||
+                property.neighborhood ||
+                property.city ||
+                null;
 
               return (
                 <div key={fav.id} className="favorite-card">
@@ -127,15 +235,7 @@ const Favorites = () => {
                     to={`/details/${property.id}`}
                     className="favorite-image-container"
                   >
-                    {coverImage ? (
-                      <img
-                        src={coverImage}
-                        alt={property.name}
-                        className="favorite-image"
-                      />
-                    ) : (
-                      <div className="favorite-image-placeholder">No Image</div>
-                    )}
+                    <FavoriteImage property={property} />
                   </Link>
 
                   <div className="favorite-content">
@@ -169,8 +269,8 @@ const Favorites = () => {
                       </button>
                     </div>
 
-                    <p className="favorite-price">RM {property.price}</p>
-                    <p className="favorite-location">{property.location}</p>
+                    <p className="favorite-price">{getCompiledPrice(property)}</p>
+                    {location && <p className="favorite-location">{location}</p>}
 
                     <div className="favorite-notes-section">
                       {editingId === fav.id ? (
@@ -201,11 +301,11 @@ const Favorites = () => {
                           className="notes-display"
                           onClick={() => {
                             setEditingId(fav.id);
-                            setEditNoteValue(fav.notes || "");
+                            setEditNoteValue(fav.note || "");
                           }}
                         >
-                          {fav.notes ? (
-                            <p className="notes-text">{fav.notes}</p>
+                          {fav.note ? (
+                            <p className="notes-text">{fav.note}</p>
                           ) : (
                             <p className="add-note-prompt">+ Add note</p>
                           )}
