@@ -206,14 +206,3 @@ Each listing is scored across four dimensions:
 Scores are normalised to `[0, 1]`. Top 5 returned.
 
 ---
-
-## Roadmap
-
-- [ ] Landlord verification & inbox
-- [ ] USM Penang pilot — stress-test BM parser across dialects
-- [ ] Query-log eval loop for continuous `fit_score` tuning
-- [ ] Saved search notifications via Supabase Realtime
-
----
-
-*GDG UTM Hackathon · Project 2030 · team@siswa-rent.my*
