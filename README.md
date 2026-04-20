@@ -112,26 +112,6 @@ gcloud run deploy querysaja \
 
 ---
 
-## Roadmap
-
-- [ ] Landlord verification & inbox
-- [ ] USM Penang pilot — stress-test BM parser across dialects
-- [ ] Query-log eval loop for continuous `fit_score` tuning
-- [ ] Saved search notifications via Supabase Realtime
-
----
-
-## Team Siswa
-
-| Member | Role |
-|---|---|
-| **Meor** | AI · Backend Lead — Genkit flow, Gemini prompt, fit_score ranker, Cloud Run deploy |
-| **Kim** | Platform · Data Lead — Google Places integration, prices.json, Supabase schema |
-| **Carin** | Frontend · Design Lead — Next.js client, /api/search wiring, design system |
-| **Leo** | Demo · Video — demo script, video edit |
-
----
-
 ## License
 
 MIT — see [LICENSE](./LICENSE)
