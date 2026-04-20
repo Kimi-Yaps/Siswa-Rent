@@ -471,7 +471,7 @@ const HouseDetails = () => {
                     ★{' '}
                     {(() => {
                       const r = property.user_rating || property.google_rating;
-                      return r ? parseFloat(r).toFixed(2) : 'No Rating';
+                      return r ? parseFloat(r).toFixed(1) : 'No Rating';
                     })()}
                   </div>
                   <button
