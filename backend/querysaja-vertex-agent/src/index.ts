@@ -14,6 +14,10 @@ console.log('[Boot] index.ts loaded');
 console.log('[Boot] SUPABASE_URL set:', !!process.env.SUPABASE_URL);
 console.log('[Boot] SUPABASE_SERVICE_ROLE_KEY set:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
 
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', message: 'QuerySaja API is running' });
+});
+
 app.post('/api/search', async (req, res) => {
   try {
     const { query, user_id } = req.body;
@@ -108,5 +112,5 @@ app.post('/api/search', async (req, res) => {
 const PORT = process.env.PORT || 3400;
 
 app.listen(PORT, () => {
-  console.log(`🏠 QuerySaja Vertex AI Agent active at http://localhost:${PORT}`);
+  console.log(`QuerySaja Vertex AI Agent active at http://localhost:${PORT}`);
 });

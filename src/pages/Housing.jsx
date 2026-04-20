@@ -4,6 +4,37 @@ import { supabase } from '../components/supabaseClient';
 import { heapSort } from '../utils/heapSort';
 import './Housing.css';
 
+const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_JAVASCRIPT_MAP_API;
+
+const getStreetViewUrl = (property) => {
+  const lat = property.latitude ?? property.lat;
+  const lng = property.longitude ?? property.lng;
+  if (!lat || !lng) return null;
+  return `https://maps.googleapis.com/maps/api/streetview?size=600x400&location=${lat},${lng}&fov=80&pitch=0&radius=25&source=outdoor&key=${MAPS_API_KEY}`;
+};
+
+const getStaticMapUrl = (property) => {
+  const lat = property.latitude ?? property.lat;
+  const lng = property.longitude ?? property.lng;
+  if (!lat || !lng) return null;
+  return `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=17&size=600x400&maptype=roadmap&markers=color:0x7D9E4E%7C${lat},${lng}&key=${MAPS_API_KEY}`;
+};
+
+const checkStreetViewExists = async (property) => {
+  const lat = property.latitude ?? property.lat;
+  const lng = property.longitude ?? property.lng;
+  if (!lat || !lng) return false;
+  try {
+    const res = await fetch(
+      `https://maps.googleapis.com/maps/api/streetview/metadata?location=${lat},${lng}&radius=25&source=outdoor&key=${MAPS_API_KEY}`
+    );
+    const data = await res.json();
+    return data.status === 'OK';
+  } catch {
+    return false;
+  }
+};
+
 const getCompiledPrice = (property) => {
   if (property.price_avg) return property.price_avg;
   if (property.price_min && property.price_max) {
@@ -18,6 +49,7 @@ const Housing = () => {
   const [loading, setLoading] = useState(true);
   const [favorites, setFavorites] = useState(new Set());
   const [sessionUser, setSessionUser] = useState(null);
+  const [validStreetViews, setValidStreetViews] = useState({});
 
   const fetchProperties = async () => {
     setLoading(true);
@@ -61,6 +93,19 @@ const Housing = () => {
   useEffect(() => {
     fetchProperties();
   }, []);
+
+  // Validate street view availability for properties without photos
+  useEffect(() => {
+    const propertiesNeedingCheck = properties.filter(
+      p => !(p.photos_urls && p.photos_urls.length > 0)
+    );
+    if (propertiesNeedingCheck.length === 0) return;
+
+    propertiesNeedingCheck.forEach(async (p) => {
+      const isValid = await checkStreetViewExists(p);
+      setValidStreetViews(prev => ({ ...prev, [p.id]: isValid }));
+    });
+  }, [properties]);
 
   const handleRemoveFavorite = async (e, propertyId) => {
     e.stopPropagation();
@@ -138,10 +183,13 @@ const Housing = () => {
           <div className="houses-grid">
             {filteredProperties.length > 0 ? (
               filteredProperties.map((item) => {
-                // Safely grab the first photo URL if it exists, otherwise placeholder
-                const firstImage = (item.photos_urls && item.photos_urls.length > 0) 
-                  ? item.photos_urls[0] 
-                  : null;
+                // Priority: photos_urls → Street View (if valid) → Static Map → placeholder
+                const hasPhotos = item.photos_urls && item.photos_urls.length > 0;
+                const firstImage = hasPhotos
+                  ? item.photos_urls[0]
+                  : validStreetViews[item.id] === true
+                    ? getStreetViewUrl(item)
+                    : getStaticMapUrl(item);
                   
                 return (
                   <div 
@@ -179,27 +227,24 @@ const Housing = () => {
                     )}
                     <div className="house-image-container" style={{ backgroundColor: '#ececec' }}>
                       {firstImage ? (
-                        <>
-                          <img 
-                            src={firstImage} 
-                            alt={item.name} 
-                            className="house-image" 
-                            onError={(e) => {
-                              try {
+                        <img
+                          src={firstImage}
+                          alt={item.name}
+                          className="house-image"
+                          onError={(e) => {
+                            try {
+                              // Fallback chain: ibilik failed → try static map
+                              const staticMap = getStaticMapUrl(item);
+                              if (staticMap && e.target.src !== staticMap) {
+                                e.target.src = staticMap;
+                              } else {
                                 e.target.style.display = 'none';
-                                if (e.target.nextElementSibling) {
-                                  e.target.nextElementSibling.style.display = 'flex';
-                                }
-                              } catch (err) {
-                                console.error('Error handling image fallback:', err);
                               }
-                            }}
-                          />
-                          <div className="empty-image-placeholder" style={{ display: 'none', width: '100%', height: '100%', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '14px' }}>
-                             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '8px' }}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                             No Image Available
-                          </div>
-                        </>
+                            } catch (err) {
+                              console.error('Error handling image fallback:', err);
+                            }
+                          }}
+                        />
                       ) : (
                         <div className="empty-image-placeholder" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '14px' }}>
                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '8px' }}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
