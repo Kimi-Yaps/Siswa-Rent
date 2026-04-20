@@ -340,16 +340,68 @@ const HouseDetails = () => {
             {images.length > 1 && (
               <div className="thumbnails-container">
                 {images.map((img, idx) => (
-                  <img 
-                    key={idx} 
-                    src={img} 
-                    alt={`Thumbnail ${idx + 1}`} 
-                    className={`thumbnail ${activeIndex === idx ? 'active' : ''}`} 
+                  <img
+                    key={idx}
+                    src={img}
+                    alt={`Thumbnail ${idx + 1}`}
+                    className={`thumbnail ${activeIndex === idx ? 'active' : ''}`}
                     onClick={() => setActiveIndex(idx)}
                   />
                 ))}
               </div>
             )}
+
+            {/* Reviews — lives below the image in the left column */}
+            <div className="reviews-section">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                <h3 style={{ margin: 0, fontFamily: 'Recia, serif', fontSize: '18px', color: '#1a1a1a' }}>Reviews</h3>
+                <button
+                  onClick={() => {
+                    if (!sessionUser) {
+                      alert('Please sign in to add a review.');
+                    } else {
+                      setShowReviewModal(true);
+                    }
+                  }}
+                  style={{
+                    padding: '6px 14px',
+                    backgroundColor: 'transparent',
+                    color: '#7D9E4E',
+                    border: '1.5px solid #7D9E4E',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    fontFamily: 'Recia, serif',
+                    fontWeight: 'bold',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#7D9E4E'; e.currentTarget.style.color = '#fff'; }}
+                  onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#7D9E4E'; }}
+                >
+                  + Add Review
+                </button>
+              </div>
+
+              {property.user_review ? (
+                <div className="review-card">
+                  <div className="review-header">
+                    <div className="review-avatar" style={{ backgroundColor: '#34495E', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', fontWeight: 'bold', width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0 }}>
+                      {getInitial("Resident")}
+                    </div>
+                    <div className="review-meta">
+                      <span className="review-name">Resident</span>
+                    </div>
+                  </div>
+                  <div className="review-body">
+                    <p>{property.user_review}</p>
+                  </div>
+                </div>
+              ) : (
+                <p style={{ fontFamily: 'Arial, sans-serif', fontSize: '13px', color: '#aaa', fontStyle: 'italic', margin: 0 }}>
+                  No reviews yet. Be the first to share your experience!
+                </p>
+              )}
+            </div>
           </div>
           
           <div className="house-info-col">
@@ -449,58 +501,6 @@ const HouseDetails = () => {
               )}
             </div>
           </div>
-        </div>
-
-        {/* Reviews — full-width section below main image + info columns */}
-        <div className="reviews-section">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <h3 style={{ margin: 0, fontFamily: 'Recia, serif', fontSize: '20px', color: '#1a1a1a' }}>Reviews</h3>
-            <button
-              onClick={() => {
-                if (!sessionUser) {
-                  alert('Please sign in to add a review.');
-                } else {
-                  setShowReviewModal(true);
-                }
-              }}
-              style={{
-                padding: '8px 18px',
-                backgroundColor: 'transparent',
-                color: '#7D9E4E',
-                border: '1.5px solid #7D9E4E',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontFamily: 'Recia, serif',
-                fontWeight: 'bold',
-                transition: 'all 0.2s',
-              }}
-              onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#7D9E4E'; e.currentTarget.style.color = '#fff'; }}
-              onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#7D9E4E'; }}
-            >
-              + Add Review
-            </button>
-          </div>
-
-          {property.user_review ? (
-            <div className="review-card">
-              <div className="review-header">
-                <div className="review-avatar" style={{ backgroundColor: '#34495E', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold', width: '44px', height: '44px', borderRadius: '50%', flexShrink: 0 }}>
-                  {getInitial("Resident")}
-                </div>
-                <div className="review-meta">
-                  <span className="review-name">Resident</span>
-                </div>
-              </div>
-              <div className="review-body">
-                <p>{property.user_review}</p>
-              </div>
-            </div>
-          ) : (
-            <p style={{ fontFamily: 'Arial, sans-serif', fontSize: '14px', color: '#aaa', fontStyle: 'italic', margin: 0 }}>
-              No reviews yet. Be the first to share your experience!
-            </p>
-          )}
         </div>
 
         {/* Review Modal */}
