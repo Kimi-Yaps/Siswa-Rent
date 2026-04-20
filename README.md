@@ -16,9 +16,6 @@ Malaysian students search like this on Facebook & Social Media:
 "quiet place 10 min walk to UTM, halal food nearby, under RM700"
 "bilik sewa Taman U, RM500–RM650"
 "rumah untuk 3 orang bawah RM900 dekat masjid"
-```
-
-Every existing portal (iProperty, Mudah, PG) forces them to re-type that as English-first filter dropdowns. QuerySaja doesn't.
 
 ---
 
