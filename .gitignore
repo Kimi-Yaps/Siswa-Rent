@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 .env
 **/.env
+
+# Dev-only utility scripts (contain internal DB IDs and scraped data)
+scripts/

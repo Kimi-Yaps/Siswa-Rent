@@ -7,6 +7,37 @@ import './MapPage.css';
 
 const API_BASE = 'http://localhost:3400';
 
+const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_JAVASCRIPT_MAP_API;
+
+const getStreetViewUrl = (house, size = '600x400') => {
+  const lat = house.latitude ?? house.lat;
+  const lng = house.longitude ?? house.lng;
+  if (!lat || !lng) return null;
+  return `https://maps.googleapis.com/maps/api/streetview?size=${size}&location=${lat},${lng}&fov=80&pitch=0&radius=25&source=outdoor&key=${MAPS_API_KEY}`;
+};
+
+const getStaticMapUrl = (house, size = '600x400') => {
+  const lat = house.latitude ?? house.lat;
+  const lng = house.longitude ?? house.lng;
+  if (!lat || !lng) return null;
+  return `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=17&size=${size}&maptype=roadmap&markers=color:0x7D9E4E%7C${lat},${lng}&key=${MAPS_API_KEY}`;
+};
+
+const checkStreetViewExists = async (house) => {
+  const lat = house.latitude ?? house.lat;
+  const lng = house.longitude ?? house.lng;
+  if (!lat || !lng) return false;
+  try {
+    const res = await fetch(
+      `https://maps.googleapis.com/maps/api/streetview/metadata?location=${lat},${lng}&radius=25&source=outdoor&key=${MAPS_API_KEY}`
+    );
+    const data = await res.json();
+    return data.status === 'OK';
+  } catch {
+    return false;
+  }
+};
+
 const MapPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => JSON.parse(sessionStorage.getItem('map_isSidebarOpen')) ?? false);
   const [isSearching, setIsSearching] = useState(false);
@@ -17,6 +48,7 @@ const MapPage = () => {
   const [filteredHouses, setFilteredHouses] = useState(() => JSON.parse(sessionStorage.getItem('map_filteredHouses')) || []);
   const [favorites, setFavorites] = useState(new Set());
   const [sessionUser, setSessionUser] = useState(null);
+  const [validStreetViews, setValidStreetViews] = useState({});
 
   const fetchHouses = async () => {
     try {
@@ -81,6 +113,19 @@ const MapPage = () => {
   useEffect(() => {
     fetchHouses();
   }, []);
+
+  // Validate street view availability whenever the displayed list changes
+  useEffect(() => {
+    const toCheck = filteredHouses.filter(
+      h => !(h.photos_urls && h.photos_urls.length > 0) && !(h.id in validStreetViews)
+    );
+    if (toCheck.length === 0) return;
+
+    toCheck.forEach(async (h) => {
+      const isValid = await checkStreetViewExists(h);
+      setValidStreetViews(prev => ({ ...prev, [h.id]: isValid }));
+    });
+  }, [filteredHouses]);
 
   // Autosave map state to session storage when navigating away / interacting
   useEffect(() => {
@@ -291,42 +336,54 @@ const MapPage = () => {
                         }}>
                           {index + 1}
                         </div>
-                        {(house.photos_urls && house.photos_urls.length > 0) ? (
-                          <>
-                            <motion.img
-                              src={house.photos_urls[0]}
-                              layoutId={`image-${house.id}`}
-                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                              onError={(e) => {
-                                try {
-                                  e.target.style.display = 'none';
-                                  if (e.target.nextElementSibling) e.target.nextElementSibling.style.display = 'flex';
-                                } catch (err) { console.error(err); }
-                              }}
-                            />
+                        {(() => {
+                          const hasPhotos = house.photos_urls && house.photos_urls.length > 0;
+                          const imgSrc = hasPhotos
+                            ? house.photos_urls[0]
+                            : validStreetViews[house.id] === true
+                              ? getStreetViewUrl(house, '200x200')
+                              : getStaticMapUrl(house, '200x200');
+                          return imgSrc ? (
+                            <>
+                              <motion.img
+                                src={imgSrc}
+                                layoutId={`image-${house.id}`}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                onError={(e) => {
+                                  try {
+                                    const staticMap = getStaticMapUrl(house, '200x200');
+                                    if (staticMap && e.target.src !== staticMap) {
+                                      e.target.src = staticMap;
+                                    } else {
+                                      e.target.style.display = 'none';
+                                    }
+                                  } catch (err) { console.error(err); }
+                                }}
+                              />
+                              <div style={{
+                                display: 'none', width: '100%', height: '100%',
+                                background: 'linear-gradient(135deg,#e8f0db 0%,#c9d9a8 100%)',
+                                alignItems: 'center', justifyContent: 'center', borderRadius: '10px'
+                              }}>
+                                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7D9E4E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
+                                  <path d="M9 21V12h6v9" />
+                                </svg>
+                              </div>
+                            </>
+                          ) : (
                             <div style={{
-                              display: 'none', width: '100%', height: '100%',
+                              width: '100%', height: '100%',
                               background: 'linear-gradient(135deg,#e8f0db 0%,#c9d9a8 100%)',
-                              alignItems: 'center', justifyContent: 'center', borderRadius: '10px'
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '10px'
                             }}>
                               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7D9E4E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
                                 <path d="M9 21V12h6v9" />
                               </svg>
                             </div>
-                          </>
-                        ) : (
-                          <div style={{
-                            width: '100%', height: '100%',
-                            background: 'linear-gradient(135deg,#e8f0db 0%,#c9d9a8 100%)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '10px'
-                          }}>
-                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7D9E4E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
-                              <path d="M9 21V12h6v9" />
-                            </svg>
-                          </div>
-                        )}
+                          );
+                        })()}
                       </motion.div>
 
                       {/* Text content */}
@@ -441,43 +498,55 @@ const MapPage = () => {
                       {filteredHouses.findIndex(h => h.id === selectedHouse.id) + 1}
                     </div>
                   )}
-                  {(selectedHouse.photos_urls && selectedHouse.photos_urls.length > 0) ? (
-                    <>
-                      <motion.img
-                        layoutId={`image-${selectedHouse.id}`}
-                        src={selectedHouse.photos_urls[0]}
-                        alt={selectedHouse.name}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                        onError={(e) => {
-                          try {
-                            e.target.style.display = 'none';
-                            if (e.target.nextElementSibling) e.target.nextElementSibling.style.display = 'flex';
-                          } catch (err) { console.error(err); }
-                        }}
-                      />
+                  {(() => {
+                    const hasPhotos = selectedHouse.photos_urls && selectedHouse.photos_urls.length > 0;
+                    const imgSrc = hasPhotos
+                      ? selectedHouse.photos_urls[0]
+                      : validStreetViews[selectedHouse.id] === true
+                        ? getStreetViewUrl(selectedHouse, '600x400')
+                        : getStaticMapUrl(selectedHouse, '600x400');
+                    return imgSrc ? (
+                      <>
+                        <motion.img
+                          layoutId={`image-${selectedHouse.id}`}
+                          src={imgSrc}
+                          alt={selectedHouse.name}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                          onError={(e) => {
+                            try {
+                              const staticMap = getStaticMapUrl(selectedHouse, '600x400');
+                              if (staticMap && e.target.src !== staticMap) {
+                                e.target.src = staticMap;
+                              } else {
+                                e.target.style.display = 'none';
+                              }
+                            } catch (err) { console.error(err); }
+                          }}
+                        />
+                        <div style={{
+                          display: 'none', width: '100%', height: '100%',
+                          background: 'linear-gradient(135deg,#e8f0db 0%,#c9d9a8 100%)',
+                          alignItems: 'center', justifyContent: 'center'
+                        }}>
+                          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#7D9E4E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
+                            <path d="M9 21V12h6v9" />
+                          </svg>
+                        </div>
+                      </>
+                    ) : (
                       <div style={{
-                        display: 'none', width: '100%', height: '100%',
+                        width: '100%', height: '100%',
                         background: 'linear-gradient(135deg,#e8f0db 0%,#c9d9a8 100%)',
-                        alignItems: 'center', justifyContent: 'center'
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
                       }}>
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#7D9E4E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
                           <path d="M9 21V12h6v9" />
                         </svg>
                       </div>
-                    </>
-                  ) : (
-                    <div style={{
-                      width: '100%', height: '100%',
-                      background: 'linear-gradient(135deg,#e8f0db 0%,#c9d9a8 100%)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center'
-                    }}>
-                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#7D9E4E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
-                        <path d="M9 21V12h6v9" />
-                      </svg>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </motion.div>
 
                 <div style={{ textAlign: 'center', marginBottom: '24px' }}>
