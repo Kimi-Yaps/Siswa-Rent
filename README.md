@@ -16,6 +16,9 @@ Malaysian students search like this on Facebook & Social Media:
 "quiet place 10 min walk to UTM, halal food nearby, under RM700"
 "bilik sewa Taman U, RM500–RM650"
 "rumah untuk 3 orang bawah RM900 dekat masjid"
+```
+
+Every existing portal (iProperty, Mudah, PG) forces them to re-type that as English-first filter dropdowns. QuerySaja doesn't.
 
 ---
 
@@ -51,73 +54,13 @@ Top 5 results returned with one-line reasoning each
 | Frontend | React + Framer Motion |
 | Maps & Location | Google Maps JavaScript API · Google Places API (Nearby Search) |
 | AI / Intent Parsing | Genkit + Gemini |
-| Backend | Node.js · Express | Typescript |
+| Backend | Node.js · Express · TypeScript |
 | Hosting | Google Cloud Run |
 | Database | Supabase (PostgreSQL) |
 | Env Config | `VITE_GOOGLE_JAVASCRIPT_MAP_API` |
 
 ---
 
-## Frontend Components
-
-### `CompareLocations`
-
-A portal-based modal that renders a live Google Map comparing distance between a property and a nearby point of interest (gas station, mall, UTM campus).
-
-**Props:**
-
-| Prop | Type | Description |
-|---|---|---|
-| `isOpen` | `boolean` | Controls modal visibility |
-| `onClose` | `() => void` | Close handler |
-| `propertyLocation` | `{ lat, lng }` | Property coordinates |
-| `propertyName` | `string` | Display name for the property |
-| `comparisonType` | `'gas_station' \| 'mall' \| 'utm'` | POI category to compare against |
-
----
-
-## API
-
-### `POST /api/search`
-
-**Request:**
-```json
-{
-  "query": "cari rumah dekat UTM bawah RM700 tenang"
-}
-```
-
-**Gemini extracts:**
-```json
-{
-  "max_price": 700,
-  "radius_km": 2,
-  "anchor": "UTM Skudai",
-  "vibe": ["quiet"],
-  "lang": "ms+en"
-}
-```
-
-**Response:**
-```json
-{
-  "results": [
-    {
-      "place_id": "ChIJ_7aR...Skudai",
-      "name": "Unit Residen UTM",
-      "price_myr": 600,
-      "distance_km": 0.3,
-      "fit_score": 0.98,
-      "summary": "On-campus adjacent, within budget, quiet side street.",
-      "reasoning": "Matched radius 0.3<2km, price 600<700, vibe:quiet via Places review tags."
-    }
-  ]
-}
-```
-
-Returns **5 results max**, ranked by `fit_score`, with one-line reasoning in the query language.
-
----
 
 ## Getting Started
 
@@ -169,16 +112,30 @@ gcloud run deploy querysaja \
 
 ---
 
-## Fit Score
+## Roadmap
 
-Each listing is scored across four dimensions:
+- [ ] Landlord verification & inbox
+- [ ] USM Penang pilot — stress-test BM parser across dialects
+- [ ] Query-log eval loop for continuous `fit_score` tuning
+- [ ] Saved search notifications via Supabase Realtime
 
-| Dimension | Signal |
+---
+
+## Team Siswa
+
+| Member | Role |
 |---|---|
-| **Distance** | Parsed `radius_km` vs. actual distance from anchor |
-| **Price fit** | `max_price` from query vs. listing `price_myr` |
-| **Vibe match** | Query vibe tags (`quiet`, `halal`, `gated`) vs. Places review tags |
-| **Landlord quality** | Rating and review count from Places |
+| **Meor** | AI · Backend Lead — Genkit flow, Gemini prompt, fit_score ranker, Cloud Run deploy |
+| **Kim** | Platform · Data Lead — Google Places integration, prices.json, Supabase schema |
+| **Carin** | Frontend · Design Lead — Next.js client, /api/search wiring, design system |
+| **Leo** | Demo · Video — demo script, video edit |
 
-Scores are normalised to `[0, 1]`. Top 5 returned.
+---
 
+## License
+
+MIT — see [LICENSE](./LICENSE)
+
+---
+
+*GDG UTM Hackathon · Project 2030 · team@siswa-rent.my*
