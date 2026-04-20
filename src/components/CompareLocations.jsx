@@ -5,21 +5,24 @@ import './CompareLocations.css';
 
 const SEARCH_RADIUS = 5000; // 5km search radius in meters
 
-// Default fallback locations
+// Default fallback locations (JB / Skudai area)
 const DEFAULT_COMPARISON_POINTS = {
   gas_station: {
     label: 'Gas Station',
-    coordinates: { lat: 3.1390, lng: 101.6869 },
+    // Petronas Skudai – central fallback in Skudai area
+    coordinates: { lat: 1.5330, lng: 103.6750 },
     color: '#FFB703',
   },
   utm: {
     label: 'UTM',
-    coordinates: { lat: 1.5544, lng: 103.7618 },
+    // Universiti Teknologi Malaysia, Skudai, Johor
+    coordinates: { lat: 1.5594, lng: 103.6389 },
     color: '#FB5607',
   },
   mall: {
     label: 'Mall',
-    coordinates: { lat: 3.1890, lng: 101.6969 },
+    // AEON Mall Tebrau City, JB
+    coordinates: { lat: 1.5735, lng: 103.7894 },
     color: '#7D9E4E',
   },
 };
@@ -83,13 +86,27 @@ const findNearestPlace = (googleMaps, location, placeType) => {
 const CompareLocations = ({ isOpen, onClose, propertyLocation, propertyName, comparisonType }) => {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
+  const boundsRef = useRef(null);
   const [distance, setDistance] = useState(null);
   const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
   const [nearbyLocation, setNearbyLocation] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [mapError, setMapError] = useState(null);
+
+  // Reset state when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      setDistance(null);
+      setNearbyLocation(null);
+      setLoading(false);
+      setMapError(null);
+      mapInstance.current = null;
+    }
+  }, [isOpen]);
 
   // Load Google Maps API
   useEffect(() => {
+    // Already loaded
     if (window.google?.maps) {
       setGoogleMapsLoaded(true);
       return;
@@ -98,19 +115,31 @@ const CompareLocations = ({ isOpen, onClose, propertyLocation, propertyName, com
     const apiKey = import.meta.env.VITE_GOOGLE_JAVASCRIPT_MAP_API;
     if (!apiKey) {
       console.error('Google Maps API key is missing');
+      setMapError('Map configuration error.');
       return;
     }
 
-    const scriptId = 'google-maps-compare-script';
-    if (!document.getElementById(scriptId)) {
-      const script = document.createElement('script');
-      script.id = scriptId;
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => setGoogleMapsLoaded(true);
-      document.head.appendChild(script);
+    // Check both script IDs (MapComponent uses 'google-maps-script')
+    const existingScriptIds = ['google-maps-script', 'google-maps-compare-script'];
+    const alreadyLoading = existingScriptIds.find(id => document.getElementById(id));
+
+    if (alreadyLoading) {
+      // Script is in DOM but Maps not ready yet — wait for it
+      const el = document.getElementById(alreadyLoading);
+      const onLoad = () => setGoogleMapsLoaded(true);
+      el.addEventListener('load', onLoad, { once: true });
+      // In case it loaded between our check and the listener
+      if (window.google?.maps) setGoogleMapsLoaded(true);
+      return () => el.removeEventListener('load', onLoad);
     }
+
+    const script = document.createElement('script');
+    script.id = 'google-maps-compare-script';
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+    script.async = true;
+    script.onload = () => setGoogleMapsLoaded(true);
+    script.onerror = () => setMapError('Failed to load map. Check your connection.');
+    document.head.appendChild(script);
   }, []);
 
   // Initialize map and calculate distance
@@ -119,7 +148,16 @@ const CompareLocations = ({ isOpen, onClose, propertyLocation, propertyName, com
       return;
     }
 
+    // Guard: ensure coordinates are valid numbers
+    if (isNaN(propertyLocation.lat) || isNaN(propertyLocation.lng)) {
+      setMapError('This property has no location coordinates.');
+      return;
+    }
+
     setLoading(true);
+    setMapError(null);
+
+    let cancelled = false;
 
     // Get comparison data (either from nearby search or fallback)
     const getComparisonLocation = async () => {
@@ -128,11 +166,11 @@ const CompareLocations = ({ isOpen, onClose, propertyLocation, propertyName, com
       let label = comparisonData.label;
 
       // Search for nearest gas station or mall
-      if ((comparisonType === 'gas_station' || comparisonType === 'mall') && window.google?.maps) {
+      if ((comparisonType === 'gas_station' || comparisonType === 'mall') && window.google?.maps?.places) {
         const placeType = comparisonType === 'gas_station' ? 'gas_station' : 'shopping_mall';
         const nearby = await findNearestPlace(window.google, propertyLocation, placeType);
-        
-        if (nearby) {
+
+        if (nearby && !cancelled) {
           location = nearby.coordinates;
           label = nearby.name || comparisonData.label;
           setNearbyLocation(nearby);
@@ -143,32 +181,38 @@ const CompareLocations = ({ isOpen, onClose, propertyLocation, propertyName, com
     };
 
     getComparisonLocation().then((comparisonData) => {
-      if (!comparisonData) return;
+      if (cancelled || !comparisonData || !mapRef.current) return;
 
-      // Calculate distance using Haversine formula
-      const distanceKm = calculateDistance(
+      // Calculate straight-line distance using Haversine formula
+      const straightLineKm = calculateDistance(
         propertyLocation.lat,
         propertyLocation.lng,
         comparisonData.coordinates.lat,
         comparisonData.coordinates.lng
       );
 
-      // Estimate driving time (roughly 60 km/h average)
-      const drivingTimeMinutes = Math.round((distanceKm / 60) * 60);
+      // Road distance is typically 1.3–1.4× the straight-line distance
+      const distanceKm = straightLineKm * 1.35;
+
+      // Estimate driving time at 30 km/h average (city traffic in JB/Skudai)
+      const drivingTimeMinutes = Math.round((distanceKm / 30) * 60);
       const hours = Math.floor(drivingTimeMinutes / 60);
       const minutes = drivingTimeMinutes % 60;
       const timeString = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
 
-      setDistance({ km: distanceKm.toFixed(2), duration: timeString });
+      if (!cancelled) setDistance({ km: straightLineKm.toFixed(2), duration: timeString });
 
-      // Initialize map if not already done
-      if (!mapInstance.current) {
-        const bounds = new window.google.maps.LatLngBounds();
-        bounds.extend(propertyLocation);
-        bounds.extend(comparisonData.coordinates);
+      // Build bounds for fitBounds using the actual resolved location
+      const bounds = new window.google.maps.LatLngBounds();
+      bounds.extend(new window.google.maps.LatLng(propertyLocation.lat, propertyLocation.lng));
+      bounds.extend(new window.google.maps.LatLng(comparisonData.coordinates.lat, comparisonData.coordinates.lng));
+      boundsRef.current = bounds;
 
+      // Initialize map fresh (mapInstance.current was reset on open)
+      if (!mapInstance.current && mapRef.current) {
         mapInstance.current = new window.google.maps.Map(mapRef.current, {
           zoom: 12,
+          center: propertyLocation,
           mapTypeControl: false,
           streetViewControl: false,
           fullscreenControl: true,
@@ -183,11 +227,18 @@ const CompareLocations = ({ isOpen, onClose, propertyLocation, propertyName, com
         });
 
         mapInstance.current.fitBounds(bounds);
-        mapInstance.current.panToBounds(bounds);
+
+        // Trigger resize after animation completes to ensure tiles fill correctly
+        setTimeout(() => {
+          if (mapInstance.current && boundsRef.current) {
+            window.google.maps.event.trigger(mapInstance.current, 'resize');
+            mapInstance.current.fitBounds(boundsRef.current);
+          }
+        }, 350);
       }
 
       // Add markers for both locations
-      const propertyMarker = new window.google.maps.Marker({
+      new window.google.maps.Marker({
         position: propertyLocation,
         map: mapInstance.current,
         title: propertyName || 'Property',
@@ -201,7 +252,7 @@ const CompareLocations = ({ isOpen, onClose, propertyLocation, propertyName, com
         },
       });
 
-      const comparisonMarker = new window.google.maps.Marker({
+      new window.google.maps.Marker({
         position: comparisonData.coordinates,
         map: mapInstance.current,
         title: comparisonData.label,
@@ -215,35 +266,26 @@ const CompareLocations = ({ isOpen, onClose, propertyLocation, propertyName, com
         },
       });
 
-      // Add info windows
-      const propertyInfo = new window.google.maps.InfoWindow({
-        content: `<div style="font-family: 'Recia', serif; font-size: 14px; color: #1a1a1a;"><strong>${propertyName || 'Property'}</strong></div>`,
-      });
-      propertyInfo.open(mapInstance.current, propertyMarker);
-
-      const comparisonInfo = new window.google.maps.InfoWindow({
-        content: `<div style="font-family: 'Recia', serif; font-size: 14px; color: #1a1a1a;"><strong>${comparisonData.label}</strong></div>`,
-      });
-      comparisonInfo.open(mapInstance.current, comparisonMarker);
-
       // Draw a line between locations
-      const polyline = new window.google.maps.Polyline({
+      new window.google.maps.Polyline({
         path: [propertyLocation, comparisonData.coordinates],
         geodesic: true,
         strokeColor: '#7D9E4E',
-        strokeOpacity: 0.4,
+        strokeOpacity: 0.5,
         strokeWeight: 2,
         map: mapInstance.current,
       });
 
-      setLoading(false);
-
-      return () => {
-        propertyInfo.close();
-        comparisonInfo.close();
-        polyline.setMap(null);
-      };
+      if (!cancelled) setLoading(false);
+    }).catch((err) => {
+      console.error('CompareLocations error:', err);
+      if (!cancelled) {
+        setLoading(false);
+        setMapError('Could not load map. Please try again.');
+      }
     });
+
+    return () => { cancelled = true; };
   }, [isOpen, googleMapsLoaded, propertyLocation, comparisonType, propertyName]);
 
   if (!isOpen) return null;
@@ -288,7 +330,16 @@ const CompareLocations = ({ isOpen, onClose, propertyLocation, propertyName, com
 
             {/* Map Container */}
             <div className="compare-map-container">
-              <div ref={mapRef} className="compare-map" />
+              {mapError ? (
+                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '10px', color: '#888', fontFamily: 'Arial, sans-serif', fontSize: '14px', padding: '20px', boxSizing: 'border-box' }}>
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                  <p style={{ margin: 0, textAlign: 'center', color: '#999' }}>{mapError}</p>
+                </div>
+              ) : (
+                <div ref={mapRef} className="compare-map" />
+              )}
             </div>
 
             {/* Distance Info */}

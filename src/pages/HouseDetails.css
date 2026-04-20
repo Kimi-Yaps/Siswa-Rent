@@ -227,7 +227,11 @@
 }
 
 .reviews-section {
-  margin-top: 20px;
+  margin-top: 10px;
+  padding: 28px 32px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
 }
 
 .reviews-title {

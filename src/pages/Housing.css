@@ -22,6 +22,8 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 25px;
   max-width: 100%;
+  /* Allow hover overlays to overflow grid cells */
+  overflow: visible;
 }
 
 .house-card {
@@ -30,7 +32,7 @@
   gap: 12px;
   cursor: pointer;
   border-radius: 16px;
-  /* subtle style for desktop */
+  overflow: visible; /* allow hover overlay to expand below */
 }
 
 .house-image-container {

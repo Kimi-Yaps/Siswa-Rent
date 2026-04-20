@@ -49,6 +49,8 @@ const MapPage = () => {
   const [favorites, setFavorites] = useState(new Set());
   const [sessionUser, setSessionUser] = useState(null);
   const [validStreetViews, setValidStreetViews] = useState({});
+  const [viewMode, setViewMode] = useState('map'); // 'map' | 'list'
+  const [hoveredId, setHoveredId] = useState(null);
 
   const fetchHouses = async () => {
     try {
@@ -140,6 +142,7 @@ const MapPage = () => {
     console.log('[handleSearchSubmit] blocked?', { isSearching, filters });
     if (isSearching) return;
     setIsSidebarOpen(true);
+    setViewMode('map');
     if (!filters) return;
 
     // Build natural-language query
@@ -203,6 +206,144 @@ const MapPage = () => {
 
   const selectedHouse = filteredHouses.find(h => h.id === selectedId) ?? houses.find(h => h.id === selectedId);
 
+  // Shared in-place hover overlay — matches the selected-panel design
+  const HoverOverlay = ({ house, imgSrc, index }) => {
+    const price = house.price ?? house.price_min ?? house.price_avg;
+    const rating = house.rating || house.google_rating;
+    return (
+      <motion.div
+        initial={{ opacity: 0, scaleY: 0.9 }}
+        animate={{ opacity: 1, scaleY: 1 }}
+        exit={{ opacity: 0, scaleY: 0.92 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+        style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0,
+          transformOrigin: 'top center',
+          background: '#f4f1eb',
+          borderRadius: '16px',
+          boxShadow: '0 24px 70px rgba(0,0,0,0.28)',
+          zIndex: 200,
+          overflow: 'hidden',
+        }}
+      >
+        {/* Square image with overlaid buttons */}
+        <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1', background: '#ececec', overflow: 'hidden' }}>
+          {/* Back / close button */}
+          <button
+            onClick={(e) => { e.stopPropagation(); setHoveredId(null); }}
+            style={{
+              position: 'absolute', top: '12px', left: '12px',
+              background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(4px)',
+              border: 'none', borderRadius: '50%',
+              width: '32px', height: '32px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', zIndex: 10,
+              boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+
+          {/* Number badge */}
+          {index !== undefined && (
+            <div style={{
+              position: 'absolute', top: '12px', right: '12px',
+              background: '#4285F4', color: '#fff',
+              width: '30px', height: '30px', borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '14px', fontWeight: 'bold', zIndex: 10,
+              boxShadow: '0 4px 12px rgba(66,133,244,0.4)',
+            }}>
+              {index + 1}
+            </div>
+          )}
+
+          {imgSrc ? (
+            <img
+              src={imgSrc}
+              alt={house.name}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              onError={(e) => {
+                const fb = getStaticMapUrl(house, '600x400');
+                if (fb && e.target.src !== fb) e.target.src = fb;
+                else e.target.style.display = 'none';
+              }}
+            />
+          ) : (
+            <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg,#e8f0db,#c9d9a8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#7D9E4E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+                <path d="M9 21V12h6v9"/>
+              </svg>
+            </div>
+          )}
+        </div>
+
+        {/* Content — matches the selected panel layout */}
+        <div style={{ padding: '20px 20px 20px', textAlign: 'center' }}>
+          <h2 style={{ margin: '0 0 6px', fontFamily: 'Recia, serif', fontSize: '18px', color: '#1a1a1a', lineHeight: '1.25', fontWeight: 'normal' }}>
+            {house.name}
+          </h2>
+          <p style={{ margin: '0 0 4px', fontFamily: 'Recia, serif', fontSize: '14px', color: '#4a4a4a' }}>
+            {price ? `RM${price}` : 'Price N/A'}
+          </p>
+          <p style={{ margin: '0 0 14px', fontFamily: 'Recia, serif', fontSize: '12px', color: '#888' }}>
+            {house.neighborhood || house.city || house.address || 'Unknown Location'}
+          </p>
+
+          {/* Rating row */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', gap: '6px' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#FFD700" stroke="#FFD700" strokeWidth="1">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            <span style={{ fontFamily: 'Recia, serif', fontSize: '15px', color: '#1a1a1a', fontWeight: 'bold' }}>
+              {rating || 'New'}
+            </span>
+          </div>
+
+          {/* Amenities */}
+          <div style={{ textAlign: 'left' }}>
+            <p style={{ margin: '0 0 8px', fontFamily: 'Recia, serif', fontSize: '13px', fontWeight: 'bold', color: '#1a1a1a' }}>
+              Amenities:
+            </p>
+            {house.amenities && house.amenities.length > 0 ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '18px' }}>
+                {house.amenities.map((a, i) => (
+                  <span key={i} style={{ background: '#e9ecef', borderRadius: '6px', padding: '5px 10px', fontSize: '11px', fontFamily: 'Arial, sans-serif', color: '#1a1a1a', fontWeight: 'bold' }}>
+                    {a.replace(/[{"}]/g, '').trim()}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p style={{ margin: '0 0 18px', fontFamily: 'Arial, sans-serif', fontSize: '12px', color: '#888', fontStyle: 'italic' }}>
+                No amenities listed
+              </p>
+            )}
+          </div>
+
+          <button
+            onClick={(e) => { e.stopPropagation(); window.location.href = `/details/${house.id}`; }}
+            style={{
+              width: '100%', padding: '14px 0',
+              background: '#7D9E4E', color: '#fff',
+              border: 'none', borderRadius: '8px',
+              fontFamily: 'Recia, serif', fontSize: '15px',
+              cursor: 'pointer', fontWeight: 'bold',
+              boxShadow: '0 4px 6px rgba(125,158,78,0.25)',
+            }}
+            onMouseOver={(e) => e.currentTarget.style.background = '#6c8843'}
+            onMouseOut={(e) => e.currentTarget.style.background = '#7D9E4E'}
+          >
+            View Details
+          </button>
+        </div>
+      </motion.div>
+    );
+  };
+
   const BurgerButton = !isSidebarOpen ? (
     <button
       className="map-burger-btn"
@@ -219,8 +360,8 @@ const MapPage = () => {
   return (
     <main style={{ flex: 1, padding: 0, margin: 0, display: 'flex', width: '100%', overflow: 'hidden', position: 'relative' }}>
 
-      {/* Sidebar */}
-      <div className={`map-sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
+      {/* Sidebar — only visible in map mode */}
+      <div className={`map-sidebar ${viewMode === 'map' && isSidebarOpen ? 'open' : 'closed'}`}>
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minWidth: '300px', position: 'relative' }}>
 
           <AnimatePresence mode="wait">
@@ -276,9 +417,11 @@ const MapPage = () => {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
                       whileHover={{ y: -5 }}
+                      onMouseEnter={() => setHoveredId(house.id)}
+                      onMouseLeave={() => setHoveredId(null)}
                       style={{
                         position: 'relative',
-                        zIndex: filteredHouses.length - index,
+                        zIndex: hoveredId === house.id ? 100 : filteredHouses.length - index,
                         marginBottom: '15px',
                         width: '100%',
                         minHeight: '110px',
@@ -428,6 +571,15 @@ const MapPage = () => {
                           </p>
                         )}
                       </div>
+
+                      {/* In-place hover overlay */}
+                      <AnimatePresence>
+                        {hoveredId === house.id && (() => {
+                          const hp = house.photos_urls && house.photos_urls.length > 0;
+                          const hImg = hp ? house.photos_urls[0] : validStreetViews[house.id] === true ? getStreetViewUrl(house, '600x400') : getStaticMapUrl(house, '600x400');
+                          return <HoverOverlay key={house.id} house={house} imgSrc={hImg} index={index} />;
+                        })()}
+                      </AnimatePresence>
                     </motion.div>
                   )) : (
                     <div style={{ textAlign: 'center', marginTop: '40px', padding: '0 10px' }}>
@@ -614,30 +766,214 @@ const MapPage = () => {
         </div>
       </div>
 
-      {/* Main Map Viewport */}
+      {/* Main Viewport */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, transition: 'all 0.4s ease', position: 'relative' }}>
+
+        {/* Search bar row */}
         <div style={{ display: 'flex', alignItems: 'flex-start', width: '100%' }}>
           <div style={{ flexShrink: 0, zIndex: 50 }}>
-            {BurgerButton}
+            {viewMode === 'map' && BurgerButton}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <SearchBar
-                onSubmit={handleSearchSubmit}
-                isSearching={isSearching}
-                lastResultCount={lastQuery && !isSearching ? filteredHouses.length : null}
-                lastQueryLabel={lastQuery && !isSearching ? lastQuery : null}
-              />
+              onSubmit={handleSearchSubmit}
+              isSearching={isSearching}
+              lastResultCount={lastQuery && !isSearching ? filteredHouses.length : null}
+              lastQueryLabel={lastQuery && !isSearching ? lastQuery : null}
+            />
           </div>
         </div>
 
-        <div style={{ padding: '0 20px 20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <MapComponent
-            height="100%"
-            houses={filteredHouses}
-            selectedId={selectedId}
-            onMarkerClick={setSelectedId}
-          />
+        {/* Toggle pill — sits just below the search bar */}
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 20px 4px' }}>
+          <div style={{
+            display: 'inline-flex',
+            background: '#ece9e0',
+            borderRadius: '99px',
+            padding: '3px',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+            gap: '2px',
+          }}>
+            {['map', 'list'].map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                style={{
+                  padding: '6px 20px',
+                  borderRadius: '99px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontFamily: 'Recia, serif',
+                  fontWeight: 600,
+                  transition: 'all 0.2s ease',
+                  background: viewMode === mode ? '#7D9E4E' : 'transparent',
+                  color: viewMode === mode ? '#fff' : '#666',
+                  boxShadow: viewMode === mode ? '0 2px 6px rgba(125,158,78,0.3)' : 'none',
+                }}
+              >
+                {mode === 'map' ? (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+                      <line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
+                    </svg>
+                    Map
+                  </span>
+                ) : (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                      <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+                    </svg>
+                    List
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
+
+        {/* Map view */}
+        {viewMode === 'map' && (
+          <div style={{ padding: '0 20px 20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <MapComponent
+              height="100%"
+              houses={filteredHouses}
+              selectedId={selectedId}
+              onMarkerClick={setSelectedId}
+            />
+          </div>
+        )}
+
+        {/* List view */}
+        {viewMode === 'list' && (
+          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 24px 32px' }}>
+            {isSearching ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 20px', gap: '14px' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="#7D9E4E" strokeWidth="2.5" strokeLinecap="round"
+                  style={{ width: '36px', height: '36px', animation: 'sb-spin 0.9s linear infinite' }}>
+                  <circle cx="12" cy="12" r="9" strokeOpacity="0.2" />
+                  <path d="M12 3 a9 9 0 0 1 9 9" />
+                </svg>
+                <p style={{ fontFamily: 'Arial, sans-serif', fontSize: '13px', color: '#888', margin: 0 }}>Finding best matches…</p>
+              </div>
+            ) : filteredHouses.length > 0 ? (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                gap: '20px',
+                overflow: 'visible',
+              }}>
+                {filteredHouses.map((house, index) => {
+                  const hasPhotos = house.photos_urls && house.photos_urls.length > 0;
+                  const imgSrc = hasPhotos
+                    ? house.photos_urls[0]
+                    : validStreetViews[house.id] === true
+                      ? getStreetViewUrl(house, '600x400')
+                      : getStaticMapUrl(house, '600x400');
+
+                  return (
+                    <motion.div
+                      key={house.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.04 }}
+                      onClick={() => window.location.href = `/details/${house.id}`}
+                      style={{
+                        background: '#fff',
+                        borderRadius: '16px',
+                        overflow: 'visible',
+                        boxShadow: hoveredId === house.id ? '0 24px 70px rgba(0,0,0,0.28)' : '0 4px 12px rgba(0,0,0,0.08)',
+                        cursor: 'pointer',
+                        border: '1px solid rgba(0,0,0,0.04)',
+                        position: 'relative',
+                        // Lift the whole card above siblings so the overlay isn't clipped by adjacent stacking contexts
+                        zIndex: hoveredId === house.id ? 50 : 1,
+                      }}
+                      whileHover={{ y: -4, boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}
+                      onMouseEnter={() => setHoveredId(house.id)}
+                      onMouseLeave={() => setHoveredId(null)}
+                    >
+                      {/* Card image — overflow hidden scoped to image only */}
+                      <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: '#ececec', overflow: 'hidden', position: 'relative', borderRadius: '16px 16px 0 0' }}>
+                        {house.fit_score != null && index < 3 && (
+                          <div style={{
+                            position: 'absolute', top: '10px', left: '10px', zIndex: 10,
+                            background: index === 0 ? '#7D9E4E' : '#eaf2d7',
+                            color: index === 0 ? '#fff' : '#5a7a2e',
+                            fontSize: '10px', fontWeight: 700, fontFamily: 'Arial, sans-serif',
+                            padding: '3px 10px', borderRadius: '99px',
+                          }}>
+                            {index === 0 ? 'Top pick' : 'Strong match'}
+                          </div>
+                        )}
+                        {imgSrc ? (
+                          <img
+                            src={imgSrc}
+                            alt={house.name}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            onError={(e) => {
+                              const staticMap = getStaticMapUrl(house, '600x400');
+                              if (staticMap && e.target.src !== staticMap) e.target.src = staticMap;
+                              else e.target.style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg,#e8f0db 0%,#c9d9a8 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7D9E4E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+                              <path d="M9 21V12h6v9"/>
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Card details */}
+                      <div style={{ padding: '14px 16px', borderRadius: '0 0 16px 16px', background: '#fff' }}>
+                        <h4 style={{ margin: '0 0 4px', fontFamily: 'Recia, serif', fontSize: '15px', color: '#1a1a1a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {house.name}
+                        </h4>
+                        <p style={{ margin: '0 0 2px', fontFamily: 'Recia, serif', fontSize: '14px', color: '#4a4a4a' }}>
+                          RM {house.price}
+                        </p>
+                        <p style={{ margin: 0, fontFamily: 'Arial, sans-serif', fontSize: '11px', color: '#888' }}>
+                          {house.neighborhood || house.city || 'Unknown Location'}
+                        </p>
+                        {house.description && (
+                          <p style={{
+                            margin: '8px 0 0', fontSize: '11px', color: '#666',
+                            fontFamily: 'Arial, sans-serif', lineHeight: '1.5',
+                            overflow: 'hidden', display: '-webkit-box',
+                            WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                          }}>
+                            {house.description}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* In-place hover overlay */}
+                      <AnimatePresence>
+                        {hoveredId === house.id && (() => {
+                          const lp = house.photos_urls && house.photos_urls.length > 0;
+                          const lImg = lp ? house.photos_urls[0] : validStreetViews[house.id] === true ? getStreetViewUrl(house, '600x400') : getStaticMapUrl(house, '600x400');
+                          return <HoverOverlay key={house.id} house={house} imgSrc={lImg} index={index} />;
+                        })()}
+                      </AnimatePresence>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', marginTop: '80px' }}>
+                {lastQuery
+                  ? <p style={{ fontFamily: 'Arial, sans-serif', fontSize: '13px', color: '#888' }}>No properties matched your search.</p>
+                  : <p style={{ fontFamily: 'Arial, sans-serif', fontSize: '13px', color: '#aaa' }}>Search above to find properties.</p>
+                }
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </main>
   );

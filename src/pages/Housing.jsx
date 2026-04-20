@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import SearchBar from '../components/SearchBar';
 import { supabase } from '../components/supabaseClient';
 import { heapSort } from '../utils/heapSort';
@@ -50,6 +51,7 @@ const Housing = () => {
   const [favorites, setFavorites] = useState(new Set());
   const [sessionUser, setSessionUser] = useState(null);
   const [validStreetViews, setValidStreetViews] = useState({});
+  const [hoveredId, setHoveredId] = useState(null);
 
   const fetchProperties = async () => {
     setLoading(true);
@@ -192,39 +194,40 @@ const Housing = () => {
                     : getStaticMapUrl(item);
                   
                 return (
-                  <div 
-                    key={item.id} 
-                    className="house-card" 
-                    onClick={() => window.location.href = `/details/${item.id}`} 
-                    style={{ cursor: 'pointer', position: 'relative' }}
+                  <div
+                    key={item.id}
+                    className="house-card"
+                    onClick={() => window.location.href = `/details/${item.id}`}
+                    style={{
+                      cursor: 'pointer',
+                      position: 'relative',
+                      // Lift hovered card's stacking context above siblings
+                      zIndex: hoveredId === item.id ? 50 : 1,
+                    }}
+                    onMouseEnter={() => setHoveredId(item.id)}
+                    onMouseLeave={() => setHoveredId(null)}
                   >
+                    {/* Fav button */}
                     {favorites.has(item.id) && (
                       <button
                         onClick={(e) => handleRemoveFavorite(e, item.id)}
                         style={{
-                          position: 'absolute',
-                          top: '10px',
-                          right: '10px',
-                          background: 'white',
-                          border: 'none',
-                          borderRadius: '50%',
-                          width: '32px',
-                          height: '32px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'pointer',
-                          zIndex: 20,
-                          boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
-                          color: '#ff4b4b'
+                          position: 'absolute', top: '10px', right: '10px',
+                          background: 'white', border: 'none', borderRadius: '50%',
+                          width: '32px', height: '32px',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          cursor: 'pointer', zIndex: 20,
+                          boxShadow: '0 2px 5px rgba(0,0,0,0.2)', color: '#ff4b4b'
                         }}
                         title="Remove Favorite"
                       >
-                         <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="currentColor" strokeLinecap="round" strokeLinejoin="round">
-                           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                         </svg>
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
                       </button>
                     )}
+
+                    {/* Normal card content */}
                     <div className="house-image-container" style={{ backgroundColor: '#ececec' }}>
                       {firstImage ? (
                         <img
@@ -233,22 +236,16 @@ const Housing = () => {
                           className="house-image"
                           onError={(e) => {
                             try {
-                              // Fallback chain: ibilik failed → try static map
                               const staticMap = getStaticMapUrl(item);
-                              if (staticMap && e.target.src !== staticMap) {
-                                e.target.src = staticMap;
-                              } else {
-                                e.target.style.display = 'none';
-                              }
-                            } catch (err) {
-                              console.error('Error handling image fallback:', err);
-                            }
+                              if (staticMap && e.target.src !== staticMap) e.target.src = staticMap;
+                              else e.target.style.display = 'none';
+                            } catch (err) { console.error(err); }
                           }}
                         />
                       ) : (
                         <div className="empty-image-placeholder" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '14px' }}>
-                           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '8px' }}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                           No Image Available
+                          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '8px' }}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                          No Image Available
                         </div>
                       )}
                     </div>
@@ -256,9 +253,129 @@ const Housing = () => {
                       <h4>{item.name}</h4>
                       <p>RM {getCompiledPrice(item)}</p>
                       <p className="house-distance">
-                        {item.neighborhood ? `${item.neighborhood}` : (item.city || 'Unknown Location')}
+                        {item.neighborhood || item.city || 'Unknown Location'}
                       </p>
                     </div>
+
+                    {/* In-place expand overlay — grows downward from the card's top */}
+                    <AnimatePresence>
+                      {hoveredId === item.id && (
+                        <motion.div
+                          initial={{ opacity: 0, scaleY: 0.9 }}
+                          animate={{ opacity: 1, scaleY: 1 }}
+                          exit={{ opacity: 0, scaleY: 0.92 }}
+                          transition={{ duration: 0.2, ease: 'easeOut' }}
+                          style={{
+                            position: 'absolute',
+                            top: 0, left: 0, right: 0,
+                            transformOrigin: 'top center',
+                            background: '#f4f1eb',
+                            borderRadius: '16px',
+                            boxShadow: '0 24px 70px rgba(0,0,0,0.28)',
+                            zIndex: 200,
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {/* Square image with close button */}
+                          <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1', background: '#ececec', overflow: 'hidden' }}>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setHoveredId(null); }}
+                              style={{
+                                position: 'absolute', top: '12px', left: '12px',
+                                background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(4px)',
+                                border: 'none', borderRadius: '50%',
+                                width: '32px', height: '32px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                cursor: 'pointer', zIndex: 10,
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                              }}
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                              </svg>
+                            </button>
+                            {firstImage ? (
+                              <img
+                                src={firstImage}
+                                alt={item.name}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                                onError={(e) => {
+                                  const fb = getStaticMapUrl(item);
+                                  if (fb && e.target.src !== fb) e.target.src = fb;
+                                  else e.target.style.display = 'none';
+                                }}
+                              />
+                            ) : (
+                              <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg,#e8f0db,#c9d9a8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#7D9E4E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+                                  <path d="M9 21V12h6v9"/>
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Content — matches selected-panel layout */}
+                          <div style={{ padding: '20px 20px 20px', textAlign: 'center' }}>
+                            <h2 style={{ margin: '0 0 6px', fontFamily: 'Recia, serif', fontSize: '18px', color: '#1a1a1a', lineHeight: '1.25', fontWeight: 'normal' }}>
+                              {item.name}
+                            </h2>
+                            <p style={{ margin: '0 0 4px', fontFamily: 'Recia, serif', fontSize: '14px', color: '#4a4a4a' }}>
+                              RM{getCompiledPrice(item)}
+                            </p>
+                            <p style={{ margin: '0 0 14px', fontFamily: 'Recia, serif', fontSize: '12px', color: '#888' }}>
+                              {item.neighborhood || item.city || item.address || 'Unknown Location'}
+                            </p>
+
+                            {/* Rating */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', gap: '6px' }}>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="#FFD700" stroke="#FFD700" strokeWidth="1">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                              </svg>
+                              <span style={{ fontFamily: 'Recia, serif', fontSize: '15px', color: '#1a1a1a', fontWeight: 'bold' }}>
+                                {item.google_rating || 'New'}
+                              </span>
+                            </div>
+
+                            {/* Amenities */}
+                            <div style={{ textAlign: 'left' }}>
+                              <p style={{ margin: '0 0 8px', fontFamily: 'Recia, serif', fontSize: '13px', fontWeight: 'bold', color: '#1a1a1a' }}>
+                                Amenities:
+                              </p>
+                              {item.amenities && item.amenities.length > 0 ? (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '18px' }}>
+                                  {item.amenities.map((a, i) => (
+                                    <span key={i} style={{ background: '#e9ecef', borderRadius: '6px', padding: '5px 10px', fontSize: '11px', fontFamily: 'Arial, sans-serif', color: '#1a1a1a', fontWeight: 'bold' }}>
+                                      {a.replace(/[{"}]/g, '').trim()}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p style={{ margin: '0 0 18px', fontFamily: 'Arial, sans-serif', fontSize: '12px', color: '#888', fontStyle: 'italic' }}>
+                                  No amenities listed
+                                </p>
+                              )}
+                            </div>
+
+                            <button
+                              onClick={(e) => { e.stopPropagation(); window.location.href = `/details/${item.id}`; }}
+                              style={{
+                                width: '100%', padding: '14px 0',
+                                background: '#7D9E4E', color: '#fff',
+                                border: 'none', borderRadius: '8px',
+                                fontFamily: 'Recia, serif', fontSize: '15px',
+                                cursor: 'pointer', fontWeight: 'bold',
+                                boxShadow: '0 4px 6px rgba(125,158,78,0.25)',
+                              }}
+                              onMouseOver={(e) => e.currentTarget.style.background = '#6c8843'}
+                              onMouseOut={(e) => e.currentTarget.style.background = '#7D9E4E'}
+                            >
+                              View Details
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 )
               })
