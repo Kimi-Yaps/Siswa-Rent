@@ -77,26 +77,6 @@ A portal-based modal that renders a live Google Map comparing distance between a
 | `propertyName` | `string` | Display name for the property |
 | `comparisonType` | `'gas_station' \| 'mall' \| 'utm'` | POI category to compare against |
 
-**Behaviour:**
-- Uses `Places.nearbySearch` within a 5 km radius to find the nearest real POI
-- Falls back to hardcoded coordinates if Places API is unavailable
-- Calculates straight-line distance with the Haversine formula
-- Estimates driving time at 60 km/h average
-- Draws a polyline between the two markers
-- Rendered via `createPortal` to `document.body` — z-index safe above all layout
-
-**Centering fix:** Framer Motion controls the `transform` property during scale animations, which overrides CSS `transform: translate(-50%, -50%)`. Centering is applied via inline `style` and Framer Motion's `x`/`y` props instead:
-
-```jsx
-<motion.div
-  className="compare-modal"
-  style={{ top: '50%', left: '50%', x: '-50%', y: '-50%' }}
-  initial={{ opacity: 0, scale: 0.95 }}
-  animate={{ opacity: 1, scale: 1 }}
-  exit={{ opacity: 0, scale: 0.95 }}
->
-```
-
 ---
 
 ## API
@@ -205,4 +185,3 @@ Each listing is scored across four dimensions:
 
 Scores are normalised to `[0, 1]`. Top 5 returned.
 
----
