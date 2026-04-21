@@ -7,8 +7,7 @@ const Footer = () => {
     <footer className="footer-container">
       <div className="footer-links">
         <Link to="/">Home</Link>
-        <Link to="/housing">Housing</Link>
-        <Link to="/map">Map</Link>
+        <Link to="/map">Start Search</Link>
       </div>
       <div className="footer-brand">
         <h2 className="pixel-text">

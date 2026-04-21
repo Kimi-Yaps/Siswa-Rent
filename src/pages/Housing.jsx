@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import SearchBar from '../components/SearchBar';
 import { supabase } from '../components/supabaseClient';
 import { heapSort } from '../utils/heapSort';
@@ -51,24 +51,17 @@ const Housing = () => {
   const [favorites, setFavorites] = useState(new Set());
   const [sessionUser, setSessionUser] = useState(null);
   const [validStreetViews, setValidStreetViews] = useState({});
-  const [hoveredId, setHoveredId] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
 
   const fetchProperties = async () => {
     setLoading(true);
     try {
-      // 1. Get properties
-      const { data, error } = await supabase
-        .from('properties')
-        .select('*');
-        
-      if (error) {
-        throw error;
-      } 
-      
+      const { data, error } = await supabase.from('properties').select('*');
+      if (error) throw error;
+
       setProperties(data || []);
       setFilteredProperties(data || []);
 
-      // 2. Get active session for favorites
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setSessionUser(session.user);
@@ -76,13 +69,12 @@ const Housing = () => {
           .from('favorites')
           .select('property_id')
           .eq('user_id', session.user.id);
-        
+
         if (!favErr && favs) {
           const favSet = new Set(favs.map(f => f.property_id));
           setFavorites(favSet);
         }
       }
-
     } catch (err) {
       console.error('Error fetching data from DB:', err);
       setProperties([]);
@@ -96,7 +88,6 @@ const Housing = () => {
     fetchProperties();
   }, []);
 
-  // Validate street view availability for properties without photos
   useEffect(() => {
     const propertiesNeedingCheck = properties.filter(
       p => !(p.photos_urls && p.photos_urls.length > 0)
@@ -111,24 +102,22 @@ const Housing = () => {
 
   const handleRemoveFavorite = async (e, propertyId) => {
     e.stopPropagation();
-    if (!window.confirm("Are you sure you want to remove this property from your favorites?")) {
-      return;
-    }
-    
+    if (!window.confirm("Are you sure you want to remove this property from your favorites?")) return;
+
     try {
-       const { error } = await supabase
-         .from('favorites')
-         .delete()
-         .match({ user_id: sessionUser.id, property_id: propertyId });
-         
-       if (error) throw error;
-       
-       setFavorites(prev => {
-         const newFavs = new Set(prev);
-         newFavs.delete(propertyId);
-         return newFavs;
-       });
-    } catch(err) {
+      const { error } = await supabase
+        .from('favorites')
+        .delete()
+        .match({ user_id: sessionUser.id, property_id: propertyId });
+
+      if (error) throw error;
+
+      setFavorites(prev => {
+        const newFavs = new Set(prev);
+        newFavs.delete(propertyId);
+        return newFavs;
+      });
+    } catch (err) {
       console.error("Failed to remove favorite:", err);
       alert("Failed to remove favorite.");
     }
@@ -137,17 +126,17 @@ const Housing = () => {
   const handleSearch = useCallback((filters) => {
     try {
       const { destination, minBudget, maxBudget } = filters;
-      
+
       let results = properties.filter((prop) => {
         if (!prop) return false;
-        
+
         let matchesDest = true;
         let matchesMin = true;
         let matchesMax = true;
 
         if (destination && destination.trim() !== '') {
           const destLower = destination.toLowerCase();
-          matchesDest = 
+          matchesDest =
             (prop.name && prop.name.toLowerCase().includes(destLower)) ||
             (prop.address && prop.address.toLowerCase().includes(destLower)) ||
             (prop.neighborhood && prop.neighborhood.toLowerCase().includes(destLower));
@@ -185,27 +174,21 @@ const Housing = () => {
           <div className="houses-grid">
             {filteredProperties.length > 0 ? (
               filteredProperties.map((item) => {
-                // Priority: photos_urls → Street View (if valid) → Static Map → placeholder
                 const hasPhotos = item.photos_urls && item.photos_urls.length > 0;
                 const firstImage = hasPhotos
                   ? item.photos_urls[0]
                   : validStreetViews[item.id] === true
                     ? getStreetViewUrl(item)
                     : getStaticMapUrl(item);
-                  
+
+                const isSelected = selectedId === item.id;
+
                 return (
                   <div
                     key={item.id}
                     className="house-card"
-                    onClick={() => window.location.href = `/details/${item.id}`}
-                    style={{
-                      cursor: 'pointer',
-                      position: 'relative',
-                      // Lift hovered card's stacking context above siblings
-                      zIndex: hoveredId === item.id ? 50 : 1,
-                    }}
-                    onMouseEnter={() => setHoveredId(item.id)}
-                    onMouseLeave={() => setHoveredId(null)}
+                    style={{ cursor: 'pointer', position: 'relative', zIndex: isSelected ? 50 : 1 }}
+                    onClick={() => setSelectedId(isSelected ? null : item.id)}
                   >
                     {/* Fav button */}
                     {favorites.has(item.id) && (
@@ -257,9 +240,9 @@ const Housing = () => {
                       </p>
                     </div>
 
-                    {/* In-place expand overlay — grows downward from the card's top */}
+                    {/* Click-to-expand overlay */}
                     <AnimatePresence>
-                      {hoveredId === item.id && (
+                      {isSelected && (
                         <motion.div
                           initial={{ opacity: 0, scaleY: 0.9 }}
                           animate={{ opacity: 1, scaleY: 1 }}
@@ -275,11 +258,12 @@ const Housing = () => {
                             zIndex: 200,
                             overflow: 'hidden',
                           }}
+                          onClick={(e) => e.stopPropagation()}
                         >
                           {/* Square image with close button */}
                           <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1', background: '#ececec', overflow: 'hidden' }}>
                             <button
-                              onClick={(e) => { e.stopPropagation(); setHoveredId(null); }}
+                              onClick={(e) => { e.stopPropagation(); setSelectedId(null); }}
                               style={{
                                 position: 'absolute', top: '12px', left: '12px',
                                 background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(4px)',
@@ -315,7 +299,7 @@ const Housing = () => {
                             )}
                           </div>
 
-                          {/* Content — matches selected-panel layout */}
+                          {/* Content */}
                           <div style={{ padding: '20px 20px 20px', textAlign: 'center' }}>
                             <h2 style={{ margin: '0 0 6px', fontFamily: 'Recia, serif', fontSize: '18px', color: '#1a1a1a', lineHeight: '1.25', fontWeight: 'normal' }}>
                               {item.name}
@@ -377,7 +361,7 @@ const Housing = () => {
                       )}
                     </AnimatePresence>
                   </div>
-                )
+                );
               })
             ) : (
               <p>No properties match your exact search criteria.</p>
