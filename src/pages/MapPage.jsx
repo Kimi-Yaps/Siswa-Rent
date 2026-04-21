@@ -49,8 +49,7 @@ const MapPage = () => {
   const [favorites, setFavorites] = useState(new Set());
   const [sessionUser, setSessionUser] = useState(null);
   const [validStreetViews, setValidStreetViews] = useState({});
-  const [viewMode, setViewMode] = useState('map'); // 'map' | 'list'
-  const [hoveredId, setHoveredId] = useState(null);
+  const [viewMode, setViewMode] = useState('map');
 
   const fetchHouses = async () => {
     try {
@@ -61,8 +60,7 @@ const MapPage = () => {
       if (error) throw error;
 
       setHouses(data || []);
-      
-      // Only reset the map to default houses if we don't have an active search in session
+
       if (!sessionStorage.getItem('map_lastQuery')) {
         setFilteredHouses(data || []);
       }
@@ -116,7 +114,6 @@ const MapPage = () => {
     fetchHouses();
   }, []);
 
-  // Validate street view availability whenever the displayed list changes
   useEffect(() => {
     const toCheck = filteredHouses.filter(
       h => !(h.photos_urls && h.photos_urls.length > 0) && !(h.id in validStreetViews)
@@ -129,7 +126,6 @@ const MapPage = () => {
     });
   }, [filteredHouses]);
 
-  // Autosave map state to session storage when navigating away / interacting
   useEffect(() => {
     sessionStorage.setItem('map_isSidebarOpen', JSON.stringify(isSidebarOpen));
     sessionStorage.setItem('map_lastQuery', lastQuery);
@@ -145,11 +141,8 @@ const MapPage = () => {
     setViewMode('map');
     if (!filters) return;
 
-    // Build natural-language query
     let query = filters.destination?.trim() || '';
 
-    // Guard: only append budget phrasing if the destination string doesn't
-    // already contain it (prevents double-appending on re-submit).
     const alreadyHasBudget = /\b(bawah|atas|antara)\s+RM/i.test(query);
     if (!alreadyHasBudget && filters.minBudget && filters.maxBudget) {
       query += ` antara RM${filters.minBudget} hingga RM${filters.maxBudget}`;
@@ -206,144 +199,6 @@ const MapPage = () => {
 
   const selectedHouse = filteredHouses.find(h => h.id === selectedId) ?? houses.find(h => h.id === selectedId);
 
-  // Shared in-place hover overlay — matches the selected-panel design
-  const HoverOverlay = ({ house, imgSrc, index }) => {
-    const price = house.price ?? house.price_min ?? house.price_avg;
-    const rating = house.rating || house.google_rating;
-    return (
-      <motion.div
-        initial={{ opacity: 0, scaleY: 0.9 }}
-        animate={{ opacity: 1, scaleY: 1 }}
-        exit={{ opacity: 0, scaleY: 0.92 }}
-        transition={{ duration: 0.2, ease: 'easeOut' }}
-        style={{
-          position: 'absolute',
-          top: 0, left: 0, right: 0,
-          transformOrigin: 'top center',
-          background: '#f4f1eb',
-          borderRadius: '16px',
-          boxShadow: '0 24px 70px rgba(0,0,0,0.28)',
-          zIndex: 200,
-          overflow: 'hidden',
-        }}
-      >
-        {/* Square image with overlaid buttons */}
-        <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1', background: '#ececec', overflow: 'hidden' }}>
-          {/* Back / close button */}
-          <button
-            onClick={(e) => { e.stopPropagation(); setHoveredId(null); }}
-            style={{
-              position: 'absolute', top: '12px', left: '12px',
-              background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(4px)',
-              border: 'none', borderRadius: '50%',
-              width: '32px', height: '32px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', zIndex: 10,
-              boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-
-          {/* Number badge */}
-          {index !== undefined && (
-            <div style={{
-              position: 'absolute', top: '12px', right: '12px',
-              background: '#4285F4', color: '#fff',
-              width: '30px', height: '30px', borderRadius: '50%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '14px', fontWeight: 'bold', zIndex: 10,
-              boxShadow: '0 4px 12px rgba(66,133,244,0.4)',
-            }}>
-              {index + 1}
-            </div>
-          )}
-
-          {imgSrc ? (
-            <img
-              src={imgSrc}
-              alt={house.name}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-              onError={(e) => {
-                const fb = getStaticMapUrl(house, '600x400');
-                if (fb && e.target.src !== fb) e.target.src = fb;
-                else e.target.style.display = 'none';
-              }}
-            />
-          ) : (
-            <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg,#e8f0db,#c9d9a8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#7D9E4E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
-                <path d="M9 21V12h6v9"/>
-              </svg>
-            </div>
-          )}
-        </div>
-
-        {/* Content — matches the selected panel layout */}
-        <div style={{ padding: '20px 20px 20px', textAlign: 'center' }}>
-          <h2 style={{ margin: '0 0 6px', fontFamily: 'Recia, serif', fontSize: '18px', color: '#1a1a1a', lineHeight: '1.25', fontWeight: 'normal' }}>
-            {house.name}
-          </h2>
-          <p style={{ margin: '0 0 4px', fontFamily: 'Recia, serif', fontSize: '14px', color: '#4a4a4a' }}>
-            {price ? `RM${price}` : 'Price N/A'}
-          </p>
-          <p style={{ margin: '0 0 14px', fontFamily: 'Recia, serif', fontSize: '12px', color: '#888' }}>
-            {house.neighborhood || house.city || house.address || 'Unknown Location'}
-          </p>
-
-          {/* Rating row */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', gap: '6px' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="#FFD700" stroke="#FFD700" strokeWidth="1">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-            </svg>
-            <span style={{ fontFamily: 'Recia, serif', fontSize: '15px', color: '#1a1a1a', fontWeight: 'bold' }}>
-              {rating ? parseFloat(rating).toFixed(1) : 'New'}
-            </span>
-          </div>
-
-          {/* Amenities */}
-          <div style={{ textAlign: 'left' }}>
-            <p style={{ margin: '0 0 8px', fontFamily: 'Recia, serif', fontSize: '13px', fontWeight: 'bold', color: '#1a1a1a' }}>
-              Amenities:
-            </p>
-            {house.amenities && house.amenities.length > 0 ? (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '18px' }}>
-                {house.amenities.map((a, i) => (
-                  <span key={i} style={{ background: '#e9ecef', borderRadius: '6px', padding: '5px 10px', fontSize: '11px', fontFamily: 'Arial, sans-serif', color: '#1a1a1a', fontWeight: 'bold' }}>
-                    {a.replace(/[{"}]/g, '').trim()}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <p style={{ margin: '0 0 18px', fontFamily: 'Arial, sans-serif', fontSize: '12px', color: '#888', fontStyle: 'italic' }}>
-                No amenities listed
-              </p>
-            )}
-          </div>
-
-          <button
-            onClick={(e) => { e.stopPropagation(); window.location.href = `/details/${house.id}`; }}
-            style={{
-              width: '100%', padding: '14px 0',
-              background: '#7D9E4E', color: '#fff',
-              border: 'none', borderRadius: '8px',
-              fontFamily: 'Recia, serif', fontSize: '15px',
-              cursor: 'pointer', fontWeight: 'bold',
-              boxShadow: '0 4px 6px rgba(125,158,78,0.25)',
-            }}
-            onMouseOver={(e) => e.currentTarget.style.background = '#6c8843'}
-            onMouseOut={(e) => e.currentTarget.style.background = '#7D9E4E'}
-          >
-            View Details
-          </button>
-        </div>
-      </motion.div>
-    );
-  };
-
   const BurgerButton = !isSidebarOpen ? (
     <button
       className="map-burger-btn"
@@ -360,7 +215,7 @@ const MapPage = () => {
   return (
     <main style={{ flex: 1, padding: 0, margin: 0, display: 'flex', width: '100%', overflow: 'hidden', position: 'relative' }}>
 
-      {/* Sidebar — only visible in map mode */}
+      {/* Sidebar */}
       <div className={`map-sidebar ${viewMode === 'map' && isSidebarOpen ? 'open' : 'closed'}`}>
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minWidth: '300px', position: 'relative' }}>
 
@@ -417,11 +272,9 @@ const MapPage = () => {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
                       whileHover={{ y: -5 }}
-                      onMouseEnter={() => setHoveredId(house.id)}
-                      onMouseLeave={() => setHoveredId(null)}
                       style={{
                         position: 'relative',
-                        zIndex: hoveredId === house.id ? 100 : filteredHouses.length - index,
+                        zIndex: filteredHouses.length - index,
                         marginBottom: '15px',
                         width: '100%',
                         minHeight: '110px',
@@ -503,16 +356,6 @@ const MapPage = () => {
                                   } catch (err) { console.error(err); }
                                 }}
                               />
-                              <div style={{
-                                display: 'none', width: '100%', height: '100%',
-                                background: 'linear-gradient(135deg,#e8f0db 0%,#c9d9a8 100%)',
-                                alignItems: 'center', justifyContent: 'center', borderRadius: '10px'
-                              }}>
-                                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7D9E4E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
-                                  <path d="M9 21V12h6v9" />
-                                </svg>
-                              </div>
                             </>
                           ) : (
                             <div style={{
@@ -571,15 +414,6 @@ const MapPage = () => {
                           </p>
                         )}
                       </div>
-
-                      {/* In-place hover overlay */}
-                      <AnimatePresence>
-                        {hoveredId === house.id && (() => {
-                          const hp = house.photos_urls && house.photos_urls.length > 0;
-                          const hImg = hp ? house.photos_urls[0] : validStreetViews[house.id] === true ? getStreetViewUrl(house, '600x400') : getStaticMapUrl(house, '600x400');
-                          return <HoverOverlay key={house.id} house={house} imgSrc={hImg} index={index} />;
-                        })()}
-                      </AnimatePresence>
                     </motion.div>
                   )) : (
                     <div style={{ textAlign: 'center', marginTop: '40px', padding: '0 10px' }}>
@@ -637,7 +471,6 @@ const MapPage = () => {
                   layoutId={`image-container-${selectedHouse.id}`}
                   style={{ position: 'relative', width: '100%', aspectRatio: '1/1', borderRadius: '16px', overflow: 'hidden', marginBottom: '20px', backgroundColor: '#ececec' }}
                 >
-                  {/* Match the bright blue map marker */}
                   {filteredHouses.findIndex(h => h.id === selectedHouse.id) !== -1 && (
                     <div style={{
                       position: 'absolute', top: '16px', right: '16px',
@@ -658,34 +491,22 @@ const MapPage = () => {
                         ? getStreetViewUrl(selectedHouse, '600x400')
                         : getStaticMapUrl(selectedHouse, '600x400');
                     return imgSrc ? (
-                      <>
-                        <motion.img
-                          layoutId={`image-${selectedHouse.id}`}
-                          src={imgSrc}
-                          alt={selectedHouse.name}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                          onError={(e) => {
-                            try {
-                              const staticMap = getStaticMapUrl(selectedHouse, '600x400');
-                              if (staticMap && e.target.src !== staticMap) {
-                                e.target.src = staticMap;
-                              } else {
-                                e.target.style.display = 'none';
-                              }
-                            } catch (err) { console.error(err); }
-                          }}
-                        />
-                        <div style={{
-                          display: 'none', width: '100%', height: '100%',
-                          background: 'linear-gradient(135deg,#e8f0db 0%,#c9d9a8 100%)',
-                          alignItems: 'center', justifyContent: 'center'
-                        }}>
-                          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#7D9E4E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
-                            <path d="M9 21V12h6v9" />
-                          </svg>
-                        </div>
-                      </>
+                      <motion.img
+                        layoutId={`image-${selectedHouse.id}`}
+                        src={imgSrc}
+                        alt={selectedHouse.name}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                        onError={(e) => {
+                          try {
+                            const staticMap = getStaticMapUrl(selectedHouse, '600x400');
+                            if (staticMap && e.target.src !== staticMap) {
+                              e.target.src = staticMap;
+                            } else {
+                              e.target.style.display = 'none';
+                            }
+                          } catch (err) { console.error(err); }
+                        }}
+                      />
                     ) : (
                       <div style={{
                         width: '100%', height: '100%',
@@ -784,7 +605,7 @@ const MapPage = () => {
           </div>
         </div>
 
-        {/* Toggle pill — sits just below the search bar */}
+        {/* Toggle pill */}
         <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 20px 4px' }}>
           <div style={{
             display: 'inline-flex',
@@ -883,19 +704,16 @@ const MapPage = () => {
                       style={{
                         background: '#fff',
                         borderRadius: '16px',
-                        overflow: 'visible',
-                        boxShadow: hoveredId === house.id ? '0 24px 70px rgba(0,0,0,0.28)' : '0 4px 12px rgba(0,0,0,0.08)',
+                        overflow: 'hidden',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
                         cursor: 'pointer',
                         border: '1px solid rgba(0,0,0,0.04)',
                         position: 'relative',
-                        // Lift the whole card above siblings so the overlay isn't clipped by adjacent stacking contexts
-                        zIndex: hoveredId === house.id ? 50 : 1,
+                        zIndex: 1,
                       }}
                       whileHover={{ y: -4, boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}
-                      onMouseEnter={() => setHoveredId(house.id)}
-                      onMouseLeave={() => setHoveredId(null)}
                     >
-                      {/* Card image — overflow hidden scoped to image only */}
+                      {/* Card image */}
                       <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: '#ececec', overflow: 'hidden', position: 'relative', borderRadius: '16px 16px 0 0' }}>
                         {house.fit_score != null && index < 3 && (
                           <div style={{
@@ -951,15 +769,6 @@ const MapPage = () => {
                           </p>
                         )}
                       </div>
-
-                      {/* In-place hover overlay */}
-                      <AnimatePresence>
-                        {hoveredId === house.id && (() => {
-                          const lp = house.photos_urls && house.photos_urls.length > 0;
-                          const lImg = lp ? house.photos_urls[0] : validStreetViews[house.id] === true ? getStreetViewUrl(house, '600x400') : getStaticMapUrl(house, '600x400');
-                          return <HoverOverlay key={house.id} house={house} imgSrc={lImg} index={index} />;
-                        })()}
-                      </AnimatePresence>
                     </motion.div>
                   );
                 })}
