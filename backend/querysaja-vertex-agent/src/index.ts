@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { searchHousingFlow } from './flows/searchHousingFlow';
-import { supabase } from './lib/supabase.ts';
+import { supabase } from './lib/supabase';
 
 const app = express();
 app.use(cors({
