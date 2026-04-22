@@ -5,7 +5,7 @@ import MapComponent from '../components/MapComponent';
 import { supabase } from '../components/supabaseClient';
 import './MapPage.css';
 
-const API_BASE = 'http://localhost:3400';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3400';
 
 const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_JAVASCRIPT_MAP_API;
 
