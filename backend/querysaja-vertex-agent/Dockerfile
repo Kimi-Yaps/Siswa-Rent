@@ -3,7 +3,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-RUN npm run build
+RUN node ./node_modules/typescript/bin/tsc
 EXPOSE 3400
 ENV PORT=3400
 CMD ["npm", "start"]
