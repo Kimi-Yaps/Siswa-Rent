@@ -5,7 +5,7 @@
 
 Siswa-Rent · QuerySaja helps students search for rental housing using the way they naturally speak: Bahasa Malaysia, English, or a mix of both. Instead of forcing users through rigid filters and long listing grids, the platform converts conversational queries into ranked housing recommendations with clear reasons.
 
-Built in 48 hours for **GDG UTM Hackathon · Project 2030**.
+Builtfor **GDG UTM Hackathon · Project 2030**.
 
 ---
 
@@ -101,8 +101,6 @@ The product is designed for the Malaysian context:
 * importance of affordability and convenience over luxury listing detail
 
 ---
-
-## Rubric Alignment
 
 ## 1. Problem and Relevance
 
@@ -482,7 +480,7 @@ The project currently supports:
 
 ## Team
 
-Built for **GDG UTM Hackathon · Project 2030** by **Team Siswa**.
+Built for **GDG UTM Hackathon · Project 2030** by **Scuba++**.
 
 ---
 
@@ -490,14 +488,3 @@ Built for **GDG UTM Hackathon · Project 2030** by **Team Siswa**.
 
 This project is licensed under the **MIT License**.
 See [LICENSE](./LICENSE) for details.
-
-```
-
-This version is:
-- consistent Markdown
-- cleaner heading structure
-- more professional
-- directly aligned to hackathon rubric language
-
-If you want, I can also make a second version that is **shorter and judge-facing**, with stronger wording for “innovation”, “impact”, and “technical complexity”.
-```
