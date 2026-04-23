@@ -187,6 +187,7 @@ Rumah dekat UTM bawah RM700
 ---
 
 ## System Architecture
+![System Architecture](docs/images/architecture.png)
 
 ### Frontend
 
