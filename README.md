@@ -5,7 +5,7 @@
 
 Siswa-Rent · QuerySaja helps students search for rental housing using the way they naturally speak: Bahasa Malaysia, English, or a mix of both. Instead of forcing users through rigid filters and long listing grids, the platform converts conversational queries into ranked housing recommendations with clear reasons.
 
-Builtfor **GDG UTM Hackathon · Project 2030**.
+Built for **GDG UTM Hackathon · Project 2030**.
 
 ---
 
