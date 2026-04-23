@@ -1,3 +1,4 @@
+![Home](docs/images/home.png)
 # Siswa-Rent
 
 > **Cari rumah, bukan filter.**  
