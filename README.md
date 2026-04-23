@@ -1,9 +1,9 @@
-# Siswa-Rent · QuerySaja
+# Siswa-Rent
 
 > **Cari rumah, bukan filter.**  
 > A natural-language housing search platform built for Malaysian students.
 
-Siswa-Rent · QuerySaja helps students search for rental housing using the way they naturally speak: Bahasa Malaysia, English, or a mix of both. Instead of forcing users through rigid filters and long listing grids, the platform converts conversational queries into ranked housing recommendations with clear reasons.
+Siswa-Rent · Siswa-Rent helps students search for rental housing using the way they naturally speak: Bahasa Malaysia, English, or a mix of both. Instead of forcing users through rigid filters and long listing grids, the platform converts conversational queries into ranked housing recommendations with clear reasons.
 
 Built for **GDG UTM Hackathon · Project 2030**.
 
@@ -57,7 +57,7 @@ This creates unnecessary friction during a stressful and time-sensitive housing 
 
 ## Solution Overview
 
-QuerySaja is a natural-language housing search platform designed around how Malaysian students actually search.
+Siswa-Rent is a natural-language housing search platform designed around how Malaysian students actually search.
 
 Users can describe:
 
@@ -76,7 +76,7 @@ The platform then:
 4. ranks the results based on fit and relevance
 5. returns a shortlist with concise reasoning
 
-Instead of “filter first, think later,” QuerySaja enables users to **search first, then evaluate meaningful results**.
+Instead of “filter first, think later,” Siswa-Rent enables users to **search first, then evaluate meaningful results**.
 
 ---
 
@@ -104,7 +104,7 @@ The product is designed for the Malaysian context:
 
 ## 1. Problem and Relevance
 
-QuerySaja solves a practical, high-frequency problem: student housing discovery. It directly addresses the gap between how students naturally search and how current platforms force them to search.
+Siswa-Rent solves a practical, high-frequency problem: student housing discovery. It directly addresses the gap between how students naturally search and how current platforms force them to search.
 
 ## 2. Innovation
 
@@ -240,7 +240,7 @@ Both frontend and backend are deployed using **Google Cloud Run**.
 ```text
 Siswa-Rent/
 ├── backend/
-│   └── querysaja-vertex-agent/
+│   └── Siswa-Rent-vertex-agent/
 │       ├── src/
 │       │   ├── data/
 │       │   ├── flows/
@@ -330,7 +330,7 @@ npm run dev
 ### Install Backend Dependencies
 
 ```bash
-cd backend/querysaja-vertex-agent
+cd backend/Siswa-Rent-vertex-agent
 npm install
 ```
 
@@ -381,7 +381,7 @@ VITE_API_BASE_URL=your_deployed_backend_url
 Path:
 
 ```text
-backend/querysaja-vertex-agent/.env
+backend/Siswa-Rent-vertex-agent/.env
 ```
 
 Example:
@@ -401,9 +401,9 @@ PORT=3400
 ### Backend Deployment
 
 ```bash
-cd backend/querysaja-vertex-agent
+cd backend/Siswa-Rent-vertex-agent
 
-gcloud run deploy querysaja-backend \
+gcloud run deploy Siswa-Rent-backend \
   --source . \
   --region asia-southeast1 \
   --allow-unauthenticated
