@@ -16,7 +16,7 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
-RUN npm install
+RUN npm run build && ls -la dist && test -f dist/index.html
 
 EXPOSE 8080
 CMD ["node", "server.js"]
