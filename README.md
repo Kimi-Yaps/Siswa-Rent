@@ -3,7 +3,7 @@
 > **Cari rumah, bukan filter.**  
 > A natural-language housing search platform built for Malaysian students.
 
-Siswa-Rent · Siswa-Rent helps students search for rental housing using the way they naturally speak: Bahasa Malaysia, English, or a mix of both. Instead of forcing users through rigid filters and long listing grids, the platform converts conversational queries into ranked housing recommendations with clear reasons.
+Siswa-Rent helps students search for rental housing using the way they naturally speak: Bahasa Malaysia, English, or a mix of both. Instead of forcing users through rigid filters and long listing grids, the platform converts conversational queries into ranked housing recommendations with clear reasons.
 
 Built for **GDG UTM Hackathon · Project 2030**.
 
