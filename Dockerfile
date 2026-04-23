@@ -13,10 +13,10 @@ ENV VITE_GOOGLE_JAVASCRIPT_MAP_API=$VITE_GOOGLE_JAVASCRIPT_MAP_API
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 COPY . .
-RUN npm run build
+RUN npm install
 
 EXPOSE 8080
 CMD ["node", "server.js"]
